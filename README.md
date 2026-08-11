@@ -19,6 +19,15 @@ video at a time. It works with both regular YouTube videos and YouTube Shorts.
 Choose a video resolution or extract audio in the format and quality you need, without
 having to remember command-line options.
 
+### Download a ready-to-run release
+
+Open the [Latest release](https://github.com/youngvitaly/yt-downloader/releases/latest)
+and download `YouTubeDownloader-windows-x64.zip`.
+
+The portable archive contains both `YouTubeDownloader.exe` and `ffmpeg.exe`. Python,
+Tkinter, and `yt-dlp` are already bundled into the executable, so end users do not need
+to install Python.
+
 ### Features
 
 - Regular YouTube videos and YouTube Shorts.
@@ -41,6 +50,9 @@ The application processes one video per link. It does not download entire playli
 2. Put a Windows `ffmpeg.exe` next to it.
 3. Double-click `YouTubeDownloader.exe`.
 4. Paste a YouTube video or Shorts link, select the mode and quality, then click **Download**.
+
+Releases are built automatically by GitHub Actions when a version tag such as `v1.0.0` is
+published.
 
 The current build expects this layout:
 
@@ -121,6 +133,14 @@ YouTube Downloader — небольшое нативное приложение 
 Оно работает и с обычными видео YouTube, и с YouTube Shorts. Можно выбрать разрешение
 видео или скачать только аудио в нужном формате и качестве.
 
+### Скачать готовый релиз
+
+Откройте страницу [Latest release](https://github.com/youngvitaly/yt-downloader/releases/latest)
+и скачайте `YouTubeDownloader-windows-x64.zip`.
+
+В portable-архив уже входят `YouTubeDownloader.exe` и `ffmpeg.exe`. Python, Tkinter и
+`yt-dlp` встроены в исполняемый файл, поэтому пользователю не нужно устанавливать Python.
+
 ### Возможности
 
 - обычные видео YouTube и Shorts;
@@ -145,6 +165,9 @@ YouTube Downloader — небольшое нативное приложение 
 3. Запустите `.exe` двойным кликом.
 4. Вставьте ссылку на обычное видео или Shorts, выберите режим и качество, нажмите
    **Download**.
+
+Релизы собираются автоматически через GitHub Actions после публикации тега версии,
+например `v1.0.0`.
 
 Структура папки:
 

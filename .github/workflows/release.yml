@@ -1,0 +1,97 @@
+name: Build Windows release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Package portable Windows build
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pyinstaller
+
+      - name: Download FFmpeg
+        shell: pwsh
+        env:
+          FFMPEG_URL: https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-win64-gpl-8.1.zip
+        run: |
+          Invoke-WebRequest -Uri $env:FFMPEG_URL -OutFile ffmpeg.zip
+          Expand-Archive -Path ffmpeg.zip -DestinationPath ffmpeg-dist
+
+          $ffmpeg = Get-ChildItem -Path ffmpeg-dist -Filter ffmpeg.exe -Recurse |
+            Select-Object -First 1
+          if (-not $ffmpeg) {
+            throw "ffmpeg.exe was not found in the downloaded archive"
+          }
+
+          New-Item -ItemType Directory -Path release -Force | Out-Null
+          Copy-Item $ffmpeg.FullName release\ffmpeg.exe
+
+      - name: Build application
+        shell: pwsh
+        run: |
+          python -m PyInstaller `
+            --noconfirm `
+            --clean `
+            --onefile `
+            --windowed `
+            --name YouTubeDownloader `
+            --icon icon.ico `
+            --add-data "icon.ico;." `
+            --collect-all yt_dlp `
+            app.py
+
+          Copy-Item dist\YouTubeDownloader.exe release\YouTubeDownloader.exe
+          Copy-Item README.md release\README.md
+          Copy-Item icon.png release\icon.png
+
+          @"
+          YouTube Downloader portable package
+
+          Run YouTubeDownloader.exe.
+          Python is already bundled into the executable.
+          ffmpeg.exe is included for video merging and audio conversion.
+          "@ | Set-Content -Path release\START-HERE.txt -Encoding UTF8
+
+          Compress-Archive `
+            -Path release\* `
+            -DestinationPath YouTubeDownloader-windows-x64.zip `
+            -CompressionLevel Optimal `
+            -Force
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: YouTubeDownloader-windows-x64
+          path: YouTubeDownloader-windows-x64.zip
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" `
+            YouTubeDownloader-windows-x64.zip `
+            --title "YouTube Downloader ${{ github.ref_name }}" `
+            --generate-notes
