@@ -33,7 +33,7 @@ jobs:
         shell: pwsh
         env:
           FFMPEG_URL: https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-win64-gpl-8.1.zip
-          FFMPEG_SHA256: 642a86269f3b03d8f47f058ec9357fd93b6930018a4003092179b2c7116179b9
+          FFMPEG_SHA256: b3b581e72328e8f956f75895e54d7ccc4ffe6cd7211c4954203815eec885b68a
         run: |
           Invoke-WebRequest -Uri $env:FFMPEG_URL -OutFile ffmpeg.zip
           $actualHash = (Get-FileHash ffmpeg.zip -Algorithm SHA256).Hash.ToLowerInvariant()
