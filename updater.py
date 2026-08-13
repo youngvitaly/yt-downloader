@@ -17,6 +17,7 @@ import zipfile
 APP_TITLE = "YouTube & Instagram Downloader"
 PACKAGE_NAME = "YouTubeDownloader-windows-x64.zip"
 USER_FILES = {"settings.json", "instagram.session"}
+LEGACY_UPDATER_NAME = "YouTubeDownloaderUpdater.exe"
 DOWNLOAD_TIMEOUT = 30
 PROCESS_WAIT_TIMEOUT = 120
 
@@ -48,7 +49,7 @@ def request_download(url: str, destination: Path) -> None:
         trusted_download_url(url),
         headers={
             "Accept": "application/octet-stream",
-            "User-Agent": "YouTubeDownloaderUpdater",
+            "User-Agent": "Updater",
         },
     )
     with urllib.request.urlopen(request, timeout=DOWNLOAD_TIMEOUT) as response:
@@ -154,6 +155,13 @@ def replace_release_files(source: Path, application: Path) -> None:
         if target.is_dir():
             shutil.rmtree(target)
         os.replace(temporary_target, target)
+
+    legacy_updater = application / LEGACY_UPDATER_NAME
+    if legacy_updater.is_file():
+        try:
+            legacy_updater.unlink()
+        except OSError:
+            pass
 
 
 def relaunch(application_exe: Path, application_dir: Path) -> None:

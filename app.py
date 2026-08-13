@@ -28,7 +28,7 @@ except ImportError:
     instaloader = None
 
 
-APP_VERSION = "1.3.5"
+APP_VERSION = "1.3.6"
 APP_TITLE = "YouTube & Instagram Downloader"
 GITHUB_RELEASE_API = (
     "https://api.github.com/repos/youngvitaly/yt-downloader/releases/latest"
@@ -58,7 +58,7 @@ TEXT = {
         "url": "Link:",
         "paste": "Paste",
         "mode": "Mode:",
-        "video": "Video",
+        "video": "Media",
         "audio": "Audio",
         "quality": "Quality:",
         "inspect": "Get qualities",
@@ -173,7 +173,7 @@ TEXT = {
         "url": "Ссылка:",
         "paste": "Вставить",
         "mode": "Режим:",
-        "video": "Видео",
+        "video": "Медиа",
         "audio": "Аудио",
         "quality": "Качество:",
         "inspect": "Получить качества",
@@ -1543,7 +1543,7 @@ class DownloaderApp:
     def _find_updater(self) -> Path | None:
         if not getattr(sys, "frozen", False):
             return None
-        updater = app_directory() / "YouTubeDownloaderUpdater.exe"
+        updater = app_directory() / "Updater.exe"
         return updater if updater.is_file() else None
 
     def _prompt_update(self, release: dict[str, Any]) -> None:

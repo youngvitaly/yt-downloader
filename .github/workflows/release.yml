@@ -84,12 +84,14 @@ jobs:
             --clean `
             --onefile `
             --windowed `
-            --name YouTubeDownloaderUpdater `
+            --name Updater `
+            --icon icon.ico `
+            --add-data "icon.ico;." `
             updater.py
 
           Copy-Item `
-            dist\YouTubeDownloaderUpdater.exe `
-            dist\YouTubeDownloader\YouTubeDownloaderUpdater.exe `
+            dist\Updater.exe `
+            dist\YouTubeDownloader\Updater.exe `
             -Force
           Copy-Item dist\YouTubeDownloader\* release\ -Recurse -Force
           Copy-Item README.md release\README.md
@@ -103,7 +105,7 @@ jobs:
           ffmpeg.exe is included for video merging and audio conversion.
           Instagram media uses yt-dlp first, with Instaloader as a fallback. Optional
           Instagram login supports account-accessible private media and stories.
-          YouTubeDownloaderUpdater.exe checks GitHub Releases, verifies SHA-256, preserves
+          Updater.exe checks GitHub Releases, verifies SHA-256, preserves
           settings.json and instagram.session, then restarts the updated application.
           "@ | Set-Content -Path release\START-HERE.txt -Encoding UTF8
 
@@ -150,9 +152,9 @@ jobs:
               /p $env:WINDOWS_CERTIFICATE_PASSWORD `
               /tr "http://timestamp.digicert.com" `
               /td SHA256 `
-              release\YouTubeDownloaderUpdater.exe
+              release\Updater.exe
             if ($LASTEXITCODE -ne 0) {
-              throw "Authenticode signing failed for YouTubeDownloaderUpdater.exe"
+              throw "Authenticode signing failed for Updater.exe"
             }
             Remove-Item $certificatePath -Force
           }
@@ -171,12 +173,12 @@ jobs:
         run: |
           $zipHash = (Get-FileHash YouTubeDownloader-windows-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
           $exeHash = (Get-FileHash release\YouTubeDownloader.exe -Algorithm SHA256).Hash.ToLowerInvariant()
-          $updaterHash = (Get-FileHash release\YouTubeDownloaderUpdater.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          $updaterHash = (Get-FileHash release\Updater.exe -Algorithm SHA256).Hash.ToLowerInvariant()
           $ffmpegHash = (Get-FileHash release\ffmpeg.exe -Algorithm SHA256).Hash.ToLowerInvariant()
           @(
             "$zipHash  YouTubeDownloader-windows-x64.zip"
             "$exeHash  YouTubeDownloader.exe (inside ZIP)"
-            "$updaterHash  YouTubeDownloaderUpdater.exe (inside ZIP)"
+            "$updaterHash  Updater.exe (inside ZIP)"
             "$ffmpegHash  ffmpeg.exe (inside ZIP)"
           ) | Set-Content -Path SHA256SUMS.txt -Encoding ASCII
 

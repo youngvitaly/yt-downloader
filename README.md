@@ -29,10 +29,11 @@ photo posts, Reels, carousels, profiles, and stories that the account can access
 Open the [Latest release](https://github.com/youngvitaly/yt-downloader/releases/latest)
 and download `YouTubeDownloader-windows-x64.zip`.
 
-The portable archive contains `YouTubeDownloader.exe`, `YouTubeDownloaderUpdater.exe`, its
+The portable archive contains `YouTubeDownloader.exe`, `Updater.exe`, its
 support folder, and `ffmpeg.exe`. Python, Tkinter, `yt-dlp`, and Instaloader are bundled in
 the portable folder, so end users do not need to install Python. Keep the complete folder
 contents together.
+`Updater.exe` uses the same application icon and is kept beside the main executable.
 
 ### Features
 
@@ -42,7 +43,7 @@ contents together.
 - Automatic Instagram fallback: `yt-dlp` first, Instaloader second.
 - Instagram fallback media is saved directly to the selected folder with
   `DD-MM-YYYY_HH-MM-SS` download timestamps in the filename.
-- Video mode with available resolutions from 360p up to 4K when provided by the source.
+- Media mode with available resolutions from 360p up to 4K when provided by the source.
 - Audio mode with quality selection and MP3, M4A, or Opus output.
 - Optional format inspection before downloading.
 - Download progress, speed, ETA, cancellation, and retry handling.
@@ -63,7 +64,7 @@ posts, so the Instaloader fallback downloads the media visible to the logged-in 
 ### Quick start with the executable
 
 1. Download and extract `YouTubeDownloader-windows-x64.zip`.
-2. Keep `YouTubeDownloader.exe`, `YouTubeDownloaderUpdater.exe`, `_internal`, and
+2. Keep `YouTubeDownloader.exe`, `Updater.exe`, `_internal`, and
    `ffmpeg.exe` in the same folder.
 3. Double-click `YouTubeDownloader.exe`.
 4. Paste a YouTube, Shorts, or Instagram link, select the mode and quality, then
@@ -72,7 +73,7 @@ posts, so the Instaloader fallback downloads the media visible to the logged-in 
    complete 2FA if requested, and paste the direct media link.
 
 The app checks GitHub Releases in the background at startup. When a newer version is found,
-it asks for confirmation, then the separate `YouTubeDownloaderUpdater.exe` downloads the
+it asks for confirmation, then the separate `Updater.exe` downloads the
 new ZIP, verifies `SHA256SUMS.txt`, waits for the app to close, replaces the program files,
 preserves `settings.json` and `instagram.session`, and starts the new version. You can also
 run the check from **Settings → Updates**.
@@ -87,7 +88,7 @@ The portable release expects this layout:
 ```text
 release/
 ├── YouTubeDownloader.exe
-├── YouTubeDownloaderUpdater.exe
+├── Updater.exe
 ├── _internal/
 └── ffmpeg.exe
 ```
@@ -191,10 +192,12 @@ YouTube & Instagram Downloader — небольшое нативное прил�
 Откройте страницу [Latest release](https://github.com/youngvitaly/yt-downloader/releases/latest)
 и скачайте `YouTubeDownloader-windows-x64.zip`.
 
-В portable-архив входят `YouTubeDownloader.exe`, `YouTubeDownloaderUpdater.exe`, папка
+В portable-архив входят `YouTubeDownloader.exe`, `Updater.exe`, папка
 поддержки и `ffmpeg.exe`. Python, Tkinter, `yt-dlp` и Instaloader уже находятся внутри
 portable-папки, поэтому пользователю не нужно устанавливать Python. Не отделяйте `.exe`,
 автообновлятор и папку `_internal`.
+`Updater.exe` использует ту же иконку, что и основная программа, и должен находиться рядом
+с главным `.exe`.
 
 ### Возможности
 
@@ -204,7 +207,7 @@ portable-папки, поэтому пользователю не нужно у�
 - автоматический fallback для Instagram: сначала `yt-dlp`, затем Instaloader;
 - медиа Instagram сохраняется прямо в выбранную папку с датой и временем скачивания
   (`ДД-ММ-ГГГГ_ЧЧ-ММ-СС`) в имени;
-- видео от 360p до 4K, если такое качество доступно у источника;
+- медиа-режим с качеством от 360p до 4K, если такое качество доступно у источника;
 - аудио в MP3, M4A или Opus;
 - предварительный просмотр доступных качеств;
 - прогресс, скорость, оставшееся время и отмена загрузки;
@@ -227,7 +230,7 @@ portable-папки, поэтому пользователю не нужно у�
 ### Быстрый запуск `.exe`
 
 1. Скачайте и распакуйте `YouTubeDownloader-windows-x64.zip`.
-2. Оставьте `YouTubeDownloader.exe`, `YouTubeDownloaderUpdater.exe`, `_internal` и
+2. Оставьте `YouTubeDownloader.exe`, `Updater.exe`, `_internal` и
    `ffmpeg.exe` в одной папке.
 3. Запустите `YouTubeDownloader.exe` двойным кликом.
 4. Вставьте ссылку на YouTube, Shorts или Instagram, выберите режим и
@@ -236,7 +239,7 @@ portable-папки, поэтому пользователю не нужно у�
    войдите, при необходимости введите код 2FA и вставьте прямую ссылку на медиа.
 
 Приложение проверяет GitHub Releases в фоне при запуске. Если найдена новая версия, оно
-спросит подтверждение, после чего отдельный `YouTubeDownloaderUpdater.exe` скачает новый
+спросит подтверждение, после чего отдельный `Updater.exe` скачает новый
 ZIP, проверит `SHA256SUMS.txt`, дождётся закрытия приложения, заменит файлы программы,
 сохранит `settings.json` и `instagram.session`, а затем запустит новую версию. Проверку
 также можно запустить вручную в разделе **Настройки → Обновления**.
@@ -251,7 +254,7 @@ ZIP, проверит `SHA256SUMS.txt`, дождётся закрытия при
 ```text
 release/
 ├── YouTubeDownloader.exe
-├── YouTubeDownloaderUpdater.exe
+├── Updater.exe
 ├── _internal/
 └── ffmpeg.exe
 ```

@@ -53,7 +53,9 @@ echo Building automatic updater...
     --clean ^
     --onefile ^
     --windowed ^
-    --name YouTubeDownloaderUpdater ^
+    --name Updater ^
+    --icon icon.ico ^
+    --add-data "icon.ico;." ^
     updater.py
 
 if errorlevel 1 (
@@ -62,7 +64,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-copy /Y "dist\YouTubeDownloaderUpdater.exe" "dist\YouTubeDownloader\YouTubeDownloaderUpdater.exe" >nul
+copy /Y "dist\Updater.exe" "dist\YouTubeDownloader\Updater.exe" >nul
 if errorlevel 1 (
     echo Could not place the updater beside the application.
     pause
