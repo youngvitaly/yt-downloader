@@ -1,12 +1,12 @@
 <div align="center">
   <img src="icon.png" width="128" alt="YouTube and Instagram Downloader icon">
   <h1>YouTube &amp; Instagram Downloader</h1>
-  <p>A small, focused Windows desktop downloader powered by <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>, with an <a href="https://instaloader.github.io/">Instaloader</a> fallback for public Instagram media.</p>
+  <p>A small, focused Windows desktop downloader powered by <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>, with an <a href="https://instaloader.github.io/">Instaloader</a> fallback for Instagram media.</p>
   <p>
     <img src="https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square" alt="Windows">
     <img src="https://img.shields.io/badge/python-3.11.9-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.11.9">
     <img src="https://img.shields.io/badge/powered%20by-yt--dlp-111111?style=flat-square" alt="Powered by yt-dlp">
-    <img src="https://img.shields.io/badge/Instagram-public%20media-E4405F?style=flat-square&logo=instagram&logoColor=white" alt="Instagram public media">
+    <img src="https://img.shields.io/badge/Instagram-public%20%2B%20private-E4405F?style=flat-square&logo=instagram&logoColor=white" alt="Instagram public and private media">
   </p>
 </div>
 
@@ -15,14 +15,14 @@
 ### Overview
 
 YouTube & Instagram Downloader provides a clean native Windows interface for downloading
-media from regular YouTube videos, YouTube Shorts, and public Instagram links.
+media from regular YouTube videos, YouTube Shorts, and Instagram links.
 
 Choose a video resolution or extract audio in the format and quality you need, without
 having to remember command-line options.
 
-For Instagram, the application tries `yt-dlp` first. If that extractor cannot handle the
-link, Instaloader is used as a fallback for public posts, Reels, carousels, and profiles.
-Private content and login-protected stories are intentionally outside the current scope.
+For Instagram, the application tries `yt-dlp` first and passes the logged-in session when
+available. If that extractor cannot handle the link, Instaloader is used as a fallback for
+posts, Reels, carousels, profiles, and stories that the account can access.
 
 ### Download a ready-to-run release
 
@@ -36,7 +36,9 @@ do not need to install Python. Keep the complete folder contents together.
 ### Features
 
 - Regular YouTube videos and YouTube Shorts.
-- Public Instagram posts, Reels, carousels, and profiles.
+- Public and account-accessible Instagram posts, Reels, carousels, profiles, and stories.
+- Optional Instagram login with local session reuse and 2FA support.
+- Download of the account's saved Instagram posts with one click.
 - Automatic Instagram fallback: `yt-dlp` first, Instaloader second.
 - Video mode with available resolutions from 360p up to 4K when provided by the source.
 - Audio mode with quality selection and MP3, M4A, or Opus output.
@@ -50,16 +52,18 @@ do not need to install Python. Keep the complete folder contents together.
 - Custom application icon embedded in the executable and loaded by the window.
 - SHA-256 checksums published with every release.
 
-The application processes one link at a time. A public Instagram profile may contain
-multiple posts, so the Instaloader fallback downloads the profile's public media.
+The application processes one link at a time. An Instagram profile may contain multiple
+posts, so the Instaloader fallback downloads the media visible to the logged-in account.
 
 ### Quick start with the executable
 
 1. Download and extract `YouTubeDownloader-windows-x64.zip`.
 2. Keep `YouTubeDownloader.exe`, `_internal`, and `ffmpeg.exe` in the same folder.
 3. Double-click `YouTubeDownloader.exe`.
-4. Paste a YouTube, Shorts, or public Instagram link, select the mode and quality, then
+4. Paste a YouTube, Shorts, or Instagram link, select the mode and quality, then
    click **Download**.
+5. For private Instagram media or saved posts, open **Settings → Instagram account**, sign
+   in, complete 2FA if requested, and use the link or **Saved Instagram** button.
 
 Releases are built automatically by GitHub Actions when a version tag such as `v1.0.0` is
 published.
@@ -118,13 +122,19 @@ Settings are saved next to the running application:
 - source run: `settings.json` next to `app.py`;
 - packaged run: `dist\YouTubeDownloader\settings.json` next to the executable.
 
-The file stores language, theme, output folder, audio format, selected mode, and window
-geometry. It is local user configuration and is excluded from Git.
+The file stores language, theme, output folder, audio format, selected mode, window geometry,
+and the Instagram username. It is local user configuration and is excluded from Git.
+
+Instagram passwords are never written to `settings.json`. A local `instagram.session` file
+created by Instaloader is used for future logins and private downloads; protect the portable
+folder like any other folder containing an active login session. Logging out deletes that
+session file. The **Saved Instagram** action downloads the account's accessible saved posts;
+Instaloader does not provide reliable selection of one named Instagram Collection.
 
 ### Project structure
 
 ```text
-app.py          Windows GUI, yt-dlp integration, and Instagram fallback
+app.py          Windows GUI, yt-dlp integration, login, and Instagram fallback
 requirements.txt Runtime dependency
 build-requirements.txt Pinned build dependency
 run.bat         Easy source launch
@@ -150,15 +160,15 @@ those secrets, the executable remains unsigned.
 
 YouTube & Instagram Downloader — небольшое нативное приложение для Windows на базе
 [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) с запасным вариантом через
-[Instaloader](https://instaloader.github.io/) для публичного Instagram-контента.
+[Instaloader](https://instaloader.github.io/) для Instagram-контента.
 
 Оно работает и с обычными видео YouTube, и с YouTube Shorts. Можно выбрать разрешение
-видео, скачать только аудио в нужном формате и качестве, а также скачать публичные
-посты, Reels, карусели и профили Instagram.
+видео, скачать только аудио в нужном формате и качестве, а также скачать публичные и
+доступные аккаунту посты, Reels, карусели, stories и профили Instagram.
 
-Для Instagram сначала используется `yt-dlp`. Если он не справляется со ссылкой,
-приложение автоматически пробует Instaloader. Приватный контент и stories, требующие
-авторизации, пока намеренно не входят в область поддержки.
+Для Instagram сначала используется `yt-dlp`, а при наличии входа — сохранённая сессия.
+Если он не справляется со ссылкой, приложение автоматически пробует Instaloader. Вход
+позволяет скачивать приватный контент и stories, доступные этому аккаунту.
 
 ### Скачать готовый релиз
 
@@ -172,7 +182,9 @@ Tkinter, `yt-dlp` и Instaloader уже находятся внутри portable
 ### Возможности
 
 - обычные видео YouTube и Shorts;
-- публичные посты, Reels, карусели и профили Instagram;
+- публичные и доступные аккаунту посты, Reels, карусели, stories и профили Instagram;
+- необязательный вход в Instagram с повторным использованием локальной сессии и поддержкой 2FA;
+- скачивание сохранённых постов Instagram одной кнопкой;
 - автоматический fallback для Instagram: сначала `yt-dlp`, затем Instaloader;
 - видео от 360p до 4K, если такое качество доступно у источника;
 - аудио в MP3, M4A или Opus;
@@ -187,17 +199,20 @@ Tkinter, `yt-dlp` и Instaloader уже находятся внутри portable
 - корректная остановка загрузки при закрытии окна;
 - пользовательская иконка встроена в `.exe` и используется самим окном.
 
-Приложение обрабатывает одну ссылку за раз. Публичная ссылка на профиль Instagram может
-содержать несколько публикаций — в этом случае fallback Instaloader скачает публичное
-медиа профиля.
+Приложение обрабатывает одну ссылку за раз. Профиль Instagram может содержать несколько
+публикаций — в этом случае fallback Instaloader скачает медиа, доступное авторизованному
+аккаунту.
 
 ### Быстрый запуск `.exe`
 
 1. Скачайте и распакуйте `YouTubeDownloader-windows-x64.zip`.
 2. Оставьте `YouTubeDownloader.exe`, `_internal` и `ffmpeg.exe` в одной папке.
 3. Запустите `YouTubeDownloader.exe` двойным кликом.
-4. Вставьте ссылку на YouTube, Shorts или публичный Instagram, выберите режим и
+4. Вставьте ссылку на YouTube, Shorts или Instagram, выберите режим и
    качество, нажмите **Download**.
+5. Для приватного Instagram-контента или сохранённых постов откройте **Настройки →
+   Аккаунт Instagram**, войдите, при необходимости введите код 2FA и используйте ссылку
+   или кнопку **Сохранённое Instagram**.
 
 Релизы собираются автоматически через GitHub Actions после публикации тега версии,
 например `v1.0.0`.
@@ -251,13 +266,19 @@ build.bat
 - при запуске из исходников: `settings.json` рядом с `app.py`;
 - при запуске `.exe`: `dist\YouTubeDownloader\settings.json` рядом с исполняемым файлом.
 
-Сохраняются язык, тема, папка загрузки, формат аудио, режим и размер/позиция окна.
-Файл является локальной конфигурацией пользователя и исключён из Git.
+Сохраняются язык, тема, папка загрузки, формат аудио, режим, размер/позиция окна и имя
+пользователя Instagram. Файл является локальной конфигурацией пользователя и исключён из Git.
+
+Пароль Instagram никогда не записывается в `settings.json`. Для повторного входа и
+приватных загрузок используется локальный файл `instagram.session`, созданный Instaloader.
+Защитите portable-папку как папку с активной сессией. Кнопка выхода удаляет этот файл.
+Кнопка **Сохранённое Instagram** скачивает доступные аккаунту сохранённые посты; Instaloader
+не предоставляет надёжного выбора отдельной именованной Collection.
 
 ### Структура проекта
 
 ```text
-app.py          Windows-интерфейс, yt-dlp и fallback Instagram
+app.py          Windows-интерфейс, вход, yt-dlp и fallback Instagram
 requirements.txt Зависимость приложения
 build-requirements.txt Фиксированные зависимости сборки
 run.bat         Простой запуск из исходников

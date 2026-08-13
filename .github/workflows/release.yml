@@ -76,8 +76,8 @@ jobs:
           Keep all files and folders together, then run YouTubeDownloader.exe.
           Python is already bundled into the executable.
           ffmpeg.exe is included for video merging and audio conversion.
-          Instagram public posts, Reels, carousels, and profiles use yt-dlp first,
-          with Instaloader as a fallback.
+          Instagram media uses yt-dlp first, with Instaloader as a fallback. Optional
+          Instagram login supports account-accessible private media and saved posts.
           "@ | Set-Content -Path release\START-HERE.txt -Encoding UTF8
 
       - name: Sign executable (optional)

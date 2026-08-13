@@ -35,6 +35,7 @@ DEFAULT_SETTINGS = {
     "mode": "video",
     "audio_format": "MP3",
     "geometry": "720x520",
+    "instagram_username": "",
 }
 
 LANGUAGE_LABELS = {"en": "English", "ru": "Русский"}
@@ -58,6 +59,7 @@ TEXT = {
         "browse": "Browse…",
         "settings": "Settings",
         "download": "Download",
+        "instagram_saved": "Saved Instagram",
         "cancel": "Cancel",
         "open_folder": "Open folder",
         "ready": "Ready",
@@ -94,6 +96,31 @@ TEXT = {
         "settings_title": "Settings",
         "language": "Language:",
         "theme": "Theme:",
+        "instagram_account": "Instagram account",
+        "instagram_status_logged_in": "Logged in as {username}",
+        "instagram_status_logged_out": "Not logged in",
+        "instagram_status_missing": "Session file is missing. Log in again.",
+        "instagram_login": "Log in",
+        "instagram_logout": "Log out",
+        "instagram_login_title": "Instagram login",
+        "instagram_username": "Username:",
+        "instagram_password": "Password:",
+        "instagram_two_factor": "2FA code:",
+        "instagram_login_submit": "Log in",
+        "instagram_verify": "Verify code",
+        "instagram_login_starting": "Signing in to Instagram…",
+        "instagram_login_2fa": "Instagram requested a two-factor authentication code.",
+        "instagram_login_success": "Logged in as {username}. The local session was saved.",
+        "instagram_login_error": "Instagram login failed:\n\n{text}",
+        "instagram_logout_confirm": "Delete the saved Instagram session for {username}?",
+        "instagram_logout_error": "Could not delete the Instagram session:\n\n{text}",
+        "instagram_no_session": "Log in to Instagram in Settings before downloading private content or saved posts.",
+        "instagram_session_error": "The saved Instagram session could not be loaded. Log in again in Settings.\n\n{text}",
+        "instagram_session_note": "Only Instaloader's session file is kept locally; your password is not saved. Protect this folder like a login credential.",
+        "instagram_private_note": "Login unlocks private media and stories visible to this account, plus saved posts.",
+        "instagram_saved_starting": "Downloading saved Instagram posts…",
+        "instagram_saved_log": "Downloading saved Instagram posts for {username}.",
+        "instagram_saved_no_media": "No downloadable saved Instagram media was found.",
         "save": "Save",
         "close": "Close",
         "per_second": "/s",
@@ -112,12 +139,13 @@ TEXT = {
         "{primary}\n\nInstaloader is not installed. Run run.bat to install all dependencies.",
         "instagram_fallback_error": "Instagram download failed.\n\n"
         "yt-dlp: {primary}\n\nInstaloader: {fallback}",
-        "instagram_invalid": "This Instagram link is not a supported public post, profile, or story URL.",
-        "instagram_no_media": "No public Instagram media was found.",
+        "instagram_invalid": "This Instagram link is not a supported post, profile, story, or saved-post URL.",
+        "instagram_no_media": "No Instagram media was found.",
         "instagram_no_audio": "The Instagram content does not contain a video or audio track.",
         "instagram_processing": "Converting Instagram video to audio…",
         "instagram_login_required": "Instagram requires a logged-in session for this content. "
-        "Public-only mode supports public posts, Reels, carousels, and profiles.",
+        "Log in from Settings and make sure the account can view it.",
+        "instagram_dependency_error": "The Instaloader package was not found.\n\nRun run.bat.",
     },
     "ru": {
         "heading": "Загрузка видео, аудио и соцмедиа",
@@ -133,6 +161,7 @@ TEXT = {
         "browse": "Обзор…",
         "settings": "Настройки",
         "download": "Скачать",
+        "instagram_saved": "Сохранённое Instagram",
         "cancel": "Отмена",
         "open_folder": "Открыть папку",
         "ready": "Готово",
@@ -169,6 +198,31 @@ TEXT = {
         "settings_title": "Настройки",
         "language": "Язык:",
         "theme": "Тема:",
+        "instagram_account": "Аккаунт Instagram",
+        "instagram_status_logged_in": "Выполнен вход: {username}",
+        "instagram_status_logged_out": "Вход не выполнен",
+        "instagram_status_missing": "Файл сессии отсутствует. Войдите снова.",
+        "instagram_login": "Войти",
+        "instagram_logout": "Выйти",
+        "instagram_login_title": "Вход в Instagram",
+        "instagram_username": "Имя пользователя:",
+        "instagram_password": "Пароль:",
+        "instagram_two_factor": "Код 2FA:",
+        "instagram_login_submit": "Войти",
+        "instagram_verify": "Проверить код",
+        "instagram_login_starting": "Выполняю вход в Instagram…",
+        "instagram_login_2fa": "Instagram запросил код двухфакторной аутентификации.",
+        "instagram_login_success": "Вход выполнен: {username}. Локальная сессия сохранена.",
+        "instagram_login_error": "Не удалось войти в Instagram:\n\n{text}",
+        "instagram_logout_confirm": "Удалить сохранённую сессию Instagram для {username}?",
+        "instagram_logout_error": "Не удалось удалить сессию Instagram:\n\n{text}",
+        "instagram_no_session": "Сначала войдите в Instagram через Настройки, чтобы скачивать приватный контент или сохранённые посты.",
+        "instagram_session_error": "Не удалось загрузить сохранённую сессию Instagram. Войдите снова через Настройки.\n\n{text}",
+        "instagram_session_note": "Локально хранится только файл сессии Instaloader; пароль не сохраняется. Защитите эту папку как данные для входа.",
+        "instagram_private_note": "Вход открывает приватные медиа и stories, доступные этому аккаунту, а также сохранённые посты.",
+        "instagram_saved_starting": "Скачиваю сохранённые посты Instagram…",
+        "instagram_saved_log": "Скачиваю сохранённые посты Instagram для {username}.",
+        "instagram_saved_no_media": "Скачиваемые сохранённые медиа Instagram не найдены.",
         "save": "Сохранить",
         "close": "Закрыть",
         "per_second": "/с",
@@ -187,12 +241,13 @@ TEXT = {
         "{primary}\n\nInstaloader не установлен. Запустите run.bat для установки зависимостей.",
         "instagram_fallback_error": "Не удалось скачать Instagram.\n\n"
         "yt-dlp: {primary}\n\nInstaloader: {fallback}",
-        "instagram_invalid": "Это не поддерживаемая публичная ссылка Instagram на пост, профиль или story.",
-        "instagram_no_media": "Публичное медиа Instagram не найдено.",
+        "instagram_invalid": "Это не поддерживаемая ссылка Instagram на пост, профиль, story или сохранённые посты.",
+        "instagram_no_media": "Медиа Instagram не найдено.",
         "instagram_no_audio": "В контенте Instagram нет видео или аудиодорожки.",
         "instagram_processing": "Конвертирую видео Instagram в аудио…",
         "instagram_login_required": "Для этого контента Instagram требует авторизованную сессию. "
-        "В режиме только публичного контента доступны посты, Reels, карусели и профили.",
+        "Войдите через Настройки и проверьте, что аккаунту доступен этот контент.",
+        "instagram_dependency_error": "Не найден пакет Instaloader.\n\nЗапустите run.bat.",
     },
 }
 
@@ -231,6 +286,7 @@ INSTAGRAM_RESERVED_PATHS = {
     "session",
     "settings",
     "about",
+    "your_activity",
 }
 
 
@@ -250,6 +306,7 @@ def resource_path(filename: str) -> Path:
 
 
 SETTINGS_PATH = app_directory() / "settings.json"
+INSTAGRAM_SESSION_PATH = app_directory() / "instagram.session"
 
 
 def load_settings() -> dict[str, Any]:
@@ -355,6 +412,11 @@ def parse_instagram_url(url: str) -> tuple[str, str] | None:
         return None
 
     section = parts[0].lower()
+    lower_parts = [part.lower() for part in parts]
+    if section == "saved" or (
+        section == "your_activity" and "saved" in lower_parts[1:]
+    ):
+        return "saved", "saved"
     if section in {"p", "reel", "tv"} and len(parts) > 1:
         return "post", parts[1]
     if section == "stories":
@@ -372,6 +434,12 @@ class DownloaderApp:
         self.language = language if isinstance(language, str) and language in TEXT else "en"
         theme = self.settings.get("theme", "light")
         self.theme = theme if isinstance(theme, str) and theme in THEME_LABELS["en"] else "light"
+        instagram_username = self.settings.get("instagram_username", "")
+        self.instagram_username = (
+            instagram_username.strip()
+            if isinstance(instagram_username, str)
+            else ""
+        )
 
         self.root.title(APP_TITLE)
         try:
@@ -384,6 +452,18 @@ class DownloaderApp:
 
         self.events: queue.Queue[tuple[str, Any]] = queue.Queue()
         self.worker: threading.Thread | None = None
+        self.auth_worker: threading.Thread | None = None
+        self.auth_loader: Any = None
+        self.auth_login_username = ""
+        self.auth_pending_2fa = False
+        self.auth_dialog: tk.Toplevel | None = None
+        self.auth_status_var: tk.StringVar | None = None
+        self.auth_code_frame: ttk.Frame | None = None
+        self.auth_action_button: ttk.Button | None = None
+        self.settings_dialog: tk.Toplevel | None = None
+        self.settings_account_status_var: tk.StringVar | None = None
+        self.settings_login_button: ttk.Button | None = None
+        self.settings_logout_button: ttk.Button | None = None
         self.cancel_event = threading.Event()
         self.current_title = ""
         self.is_closing = False
@@ -426,6 +506,30 @@ class DownloaderApp:
 
     def _theme_label(self, theme: str) -> str:
         return THEME_LABELS[self.language].get(theme, theme)
+
+    def _instagram_session_available(self) -> bool:
+        return bool(self.instagram_username and INSTAGRAM_SESSION_PATH.is_file())
+
+    def _instagram_session_status(self) -> str:
+        if self._instagram_session_available():
+            return self.t("instagram_status_logged_in", username=self.instagram_username)
+        if self.instagram_username:
+            return self.t("instagram_status_missing")
+        return self.t("instagram_status_logged_out")
+
+    def _refresh_account_status(self) -> None:
+        if self.settings_account_status_var is not None:
+            self.settings_account_status_var.set(self._instagram_session_status())
+        if self.settings_login_button is not None:
+            self.settings_login_button.configure(
+                state="disabled"
+                if self.auth_worker and self.auth_worker.is_alive()
+                else "normal"
+            )
+        if self.settings_logout_button is not None:
+            self.settings_logout_button.configure(
+                state="normal" if self._instagram_session_available() else "disabled"
+            )
 
     def _apply_theme(self) -> None:
         style = ttk.Style(self.root)
@@ -652,26 +756,32 @@ class DownloaderApp:
         actions = ttk.Frame(main)
         actions.grid(row=6, column=0, columnspan=3, sticky="ew", pady=(12, 8))
         actions.columnconfigure(0, weight=1)
+        self.saved_button = ttk.Button(
+            actions,
+            text=self.t("instagram_saved"),
+            command=self.start_saved_download,
+        )
+        self.saved_button.grid(row=0, column=1, sticky="e", padx=(8, 0))
         self.download_button = ttk.Button(
             actions,
             text=self.t("download"),
             command=self.start_download,
             style="Accent.TButton",
         )
-        self.download_button.grid(row=0, column=1, sticky="e", padx=(8, 0))
+        self.download_button.grid(row=0, column=2, sticky="e", padx=(8, 0))
         self.cancel_button = ttk.Button(
             actions,
             text=self.t("cancel"),
             command=self.cancel_download,
             state="disabled",
         )
-        self.cancel_button.grid(row=0, column=2, sticky="e", padx=(8, 0))
+        self.cancel_button.grid(row=0, column=3, sticky="e", padx=(8, 0))
         self.open_folder_button = ttk.Button(
             actions,
             text=self.t("open_folder"),
             command=self.open_output_dir,
         )
-        self.open_folder_button.grid(row=0, column=3, sticky="e", padx=(8, 0))
+        self.open_folder_button.grid(row=0, column=4, sticky="e", padx=(8, 0))
 
         self.progressbar = ttk.Progressbar(
             main,
@@ -770,8 +880,16 @@ class DownloaderApp:
     def open_settings(self) -> None:
         if self.is_closing:
             return
+        if self.settings_dialog is not None:
+            try:
+                if self.settings_dialog.winfo_exists():
+                    self.settings_dialog.focus_set()
+                    return
+            except tk.TclError:
+                pass
 
         dialog = tk.Toplevel(self.root)
+        self.settings_dialog = dialog
         dialog.title(self.t("settings_title"))
         dialog.transient(self.root)
         dialog.resizable(False, False)
@@ -815,14 +933,82 @@ class DownloaderApp:
         )
         theme_combo.grid(row=1, column=1, sticky="ew", pady=4)
 
+        ttk.Separator(frame, orient="horizontal").grid(
+            row=2,
+            column=0,
+            columnspan=2,
+            sticky="ew",
+            pady=(10, 6),
+        )
+        ttk.Label(
+            frame,
+            text=self.t("instagram_account"),
+            font=("Segoe UI", 10, "bold"),
+        ).grid(row=3, column=0, columnspan=2, sticky="w", pady=(0, 2))
+
+        self.settings_account_status_var = tk.StringVar(
+            value=self._instagram_session_status()
+        )
+        ttk.Label(frame, textvariable=self.settings_account_status_var).grid(
+            row=4,
+            column=0,
+            columnspan=2,
+            sticky="w",
+            pady=2,
+        )
+        ttk.Label(
+            frame,
+            text=self.t("instagram_private_note"),
+            wraplength=360,
+            justify="left",
+        ).grid(
+            row=5,
+            column=0,
+            columnspan=2,
+            sticky="w",
+            pady=(0, 2),
+        )
+        ttk.Label(
+            frame,
+            text=self.t("instagram_session_note"),
+            wraplength=360,
+            justify="left",
+        ).grid(
+            row=6,
+            column=0,
+            columnspan=2,
+            sticky="w",
+            pady=(0, 4),
+        )
+
+        account_buttons = ttk.Frame(frame)
+        account_buttons.grid(row=7, column=0, columnspan=2, sticky="e", pady=4)
+        self.settings_logout_button = ttk.Button(
+            account_buttons,
+            text=self.t("instagram_logout"),
+            command=self.logout_instagram,
+            state="normal" if self._instagram_session_available() else "disabled",
+        )
+        self.settings_logout_button.pack(side="right", padx=(8, 0))
+        self.settings_login_button = ttk.Button(
+            account_buttons,
+            text=self.t("instagram_login"),
+            command=lambda: self.open_instagram_login(dialog),
+        )
+        self.settings_login_button.pack(side="right")
+
         buttons = ttk.Frame(frame)
-        buttons.grid(row=2, column=0, columnspan=2, sticky="e", pady=(12, 0))
+        buttons.grid(row=8, column=0, columnspan=2, sticky="e", pady=(12, 0))
 
         def close_dialog() -> None:
             try:
                 dialog.grab_release()
             except tk.TclError:
                 pass
+            self.settings_dialog = None
+            self.settings_account_status_var = None
+            self.settings_login_button = None
+            self.settings_logout_button = None
             dialog.destroy()
 
         def apply_settings() -> None:
@@ -850,6 +1036,286 @@ class DownloaderApp:
         dialog.grab_set()
         language_combo.focus_set()
 
+    def open_instagram_login(self, parent: tk.Toplevel | None = None) -> None:
+        if self.is_closing:
+            return
+        if instaloader is None:
+            messagebox.showerror(APP_TITLE, self.t("instagram_dependency_error"))
+            return
+        if self.auth_dialog is not None:
+            try:
+                if self.auth_dialog.winfo_exists():
+                    self.auth_dialog.focus_set()
+                    return
+            except tk.TclError:
+                pass
+
+        dialog = tk.Toplevel(parent or self.root)
+        self.auth_dialog = dialog
+        dialog.title(self.t("instagram_login_title"))
+        dialog.transient(parent or self.root)
+        dialog.resizable(False, False)
+
+        frame = ttk.Frame(dialog, padding=16)
+        frame.grid(row=0, column=0, sticky="nsew")
+        frame.columnconfigure(1, weight=1)
+
+        username_var = tk.StringVar(value=self.instagram_username)
+        password_var = tk.StringVar()
+        code_var = tk.StringVar()
+        status_var = tk.StringVar()
+        self.auth_username_var = username_var
+        self.auth_password_var = password_var
+        self.auth_code_var = code_var
+        self.auth_status_var = status_var
+        self.auth_pending_2fa = False
+
+        ttk.Label(frame, text=self.t("instagram_username")).grid(
+            row=0,
+            column=0,
+            sticky="w",
+            padx=(0, 12),
+            pady=4,
+        )
+        username_entry = ttk.Entry(frame, textvariable=username_var, width=28)
+        username_entry.grid(row=0, column=1, sticky="ew", pady=4)
+        self.auth_username_entry = username_entry
+
+        ttk.Label(frame, text=self.t("instagram_password")).grid(
+            row=1,
+            column=0,
+            sticky="w",
+            padx=(0, 12),
+            pady=4,
+        )
+        password_entry = ttk.Entry(frame, textvariable=password_var, show="*", width=28)
+        password_entry.grid(row=1, column=1, sticky="ew", pady=4)
+        self.auth_password_entry = password_entry
+
+        self.auth_code_frame = ttk.Frame(frame)
+        self.auth_code_frame.grid(
+            row=2,
+            column=0,
+            columnspan=2,
+            sticky="ew",
+            pady=4,
+        )
+        self.auth_code_frame.columnconfigure(1, weight=1)
+        ttk.Label(self.auth_code_frame, text=self.t("instagram_two_factor")).grid(
+            row=0,
+            column=0,
+            sticky="w",
+            padx=(0, 12),
+        )
+        code_entry = ttk.Entry(self.auth_code_frame, textvariable=code_var, width=28)
+        code_entry.grid(row=0, column=1, sticky="ew")
+        self.auth_code_entry = code_entry
+        self.auth_code_frame.grid_remove()
+
+        ttk.Label(
+            frame,
+            textvariable=status_var,
+            wraplength=360,
+            justify="left",
+        ).grid(
+            row=3,
+            column=0,
+            columnspan=2,
+            sticky="w",
+            pady=(8, 4),
+        )
+
+        buttons = ttk.Frame(frame)
+        buttons.grid(row=4, column=0, columnspan=2, sticky="e", pady=(8, 0))
+
+        def close_dialog() -> None:
+            if self.auth_worker and self.auth_worker.is_alive():
+                return
+            self._close_auth_dialog()
+
+        def submit() -> None:
+            if self.auth_pending_2fa:
+                code = code_var.get().strip()
+                if not code:
+                    status_var.set(self.t("instagram_two_factor"))
+                    return
+                self._set_auth_busy(True)
+                self.auth_worker = threading.Thread(
+                    target=self._instagram_two_factor_worker,
+                    args=(code,),
+                    daemon=True,
+                )
+                self.auth_worker.start()
+                return
+
+            username = username_var.get().strip()
+            password = password_var.get()
+            if not username or not password:
+                status_var.set(self.t("instagram_login_error", text=self.t("instagram_username")))
+                return
+            self.auth_login_username = username
+            status_var.set(self.t("instagram_login_starting"))
+            self._set_auth_busy(True)
+            self.auth_worker = threading.Thread(
+                target=self._instagram_login_worker,
+                args=(username, password),
+                daemon=True,
+            )
+            self.auth_worker.start()
+
+        self.auth_action_button = ttk.Button(
+            buttons,
+            text=self.t("instagram_login_submit"),
+            command=submit,
+            style="Accent.TButton",
+        )
+        self.auth_action_button.pack(side="right")
+        ttk.Button(
+            buttons,
+            text=self.t("close"),
+            command=close_dialog,
+        ).pack(side="right", padx=(8, 0))
+
+        dialog.protocol("WM_DELETE_WINDOW", close_dialog)
+        dialog.grab_set()
+        username_entry.focus_set()
+
+    def _set_auth_busy(self, busy: bool) -> None:
+        state = "disabled" if busy else "normal"
+        for entry_name in (
+            "auth_username_entry",
+            "auth_password_entry",
+            "auth_code_entry",
+        ):
+            entry = getattr(self, entry_name, None)
+            if entry is not None:
+                try:
+                    entry_state = state
+                    if (
+                        not busy
+                        and self.auth_pending_2fa
+                        and entry_name in {"auth_username_entry", "auth_password_entry"}
+                    ):
+                        entry_state = "disabled"
+                    entry.configure(state=entry_state)
+                except tk.TclError:
+                    pass
+        if self.auth_action_button is not None:
+            try:
+                self.auth_action_button.configure(state=state)
+            except tk.TclError:
+                pass
+
+    def _close_auth_dialog(self) -> None:
+        dialog = self.auth_dialog
+        self.auth_dialog = None
+        self.auth_status_var = None
+        self.auth_code_frame = None
+        self.auth_action_button = None
+        self.auth_loader = None
+        self.auth_login_username = ""
+        self.auth_pending_2fa = False
+        password_var = getattr(self, "auth_password_var", None)
+        if password_var is not None:
+            password_var.set("")
+        for attribute in (
+            "auth_username_entry",
+            "auth_password_entry",
+            "auth_code_entry",
+            "auth_username_var",
+            "auth_password_var",
+            "auth_code_var",
+        ):
+            setattr(self, attribute, None)
+        if dialog is not None:
+            try:
+                dialog.grab_release()
+            except tk.TclError:
+                pass
+            try:
+                dialog.destroy()
+            except tk.TclError:
+                pass
+
+    def _save_instagram_session(self, loader: Any, username: str) -> None:
+        INSTAGRAM_SESSION_PATH.parent.mkdir(parents=True, exist_ok=True)
+        temporary_path = INSTAGRAM_SESSION_PATH.with_name(
+            INSTAGRAM_SESSION_PATH.name + ".tmp"
+        )
+        try:
+            loader.save_session_to_file(filename=str(temporary_path))
+            temporary_path.replace(INSTAGRAM_SESSION_PATH)
+        finally:
+            try:
+                temporary_path.unlink()
+            except OSError:
+                pass
+
+    def _instagram_login_worker(self, username: str, password: str) -> None:
+        try:
+            loader = self._create_instaloader()
+            try:
+                loader.login(username, password)
+            except Exception as error:
+                two_factor_error = getattr(
+                    instaloader,
+                    "TwoFactorAuthRequiredException",
+                    None,
+                )
+                if two_factor_error and isinstance(error, two_factor_error):
+                    self.auth_loader = loader
+                    self.events.put(("auth_2fa", None))
+                    return
+                raise
+            self._save_instagram_session(loader, username)
+        except Exception as error:
+            self.auth_loader = None
+            self.events.put(("auth_error", self._friendly_error(error)))
+            return
+        self.events.put(("auth_done", username))
+
+    def _instagram_two_factor_worker(self, code: str) -> None:
+        loader = self.auth_loader
+        if loader is None:
+            self.events.put(
+                ("auth_error", self.t("instagram_login_error", text="No pending login."))
+            )
+            return
+        username = self.auth_login_username
+        try:
+            loader.two_factor_login(code)
+            self._save_instagram_session(loader, username)
+        except Exception as error:
+            self.auth_loader = None
+            self.events.put(("auth_error", self._friendly_error(error)))
+            return
+        self.events.put(("auth_done", username))
+
+    def logout_instagram(self) -> None:
+        if not INSTAGRAM_SESSION_PATH.is_file():
+            self.instagram_username = ""
+            self._save_settings()
+            self._refresh_account_status()
+            return
+        username = self.instagram_username or "Instagram"
+        if not messagebox.askyesno(
+            APP_TITLE,
+            self.t("instagram_logout_confirm", username=username),
+        ):
+            return
+        try:
+            INSTAGRAM_SESSION_PATH.unlink()
+        except OSError as error:
+            messagebox.showerror(
+                APP_TITLE,
+                self.t("instagram_logout_error", text=error),
+            )
+            return
+        self.instagram_username = ""
+        self.auth_loader = None
+        self._save_settings()
+        self._refresh_account_status()
+
     def _refresh_texts(self) -> None:
         self.root.title(APP_TITLE)
         self.heading_label.configure(text=self.t("heading"))
@@ -864,6 +1330,7 @@ class DownloaderApp:
         self.audio_format_label.configure(text=self.t("audio_format"))
         self.folder_label.configure(text=self.t("folder"))
         self.browse_button.configure(text=self.t("browse"))
+        self.saved_button.configure(text=self.t("instagram_saved"))
         self.download_button.configure(text=self.t("download"))
         self.cancel_button.configure(text=self.t("cancel"))
         self.open_folder_button.configure(text=self.t("open_folder"))
@@ -879,6 +1346,7 @@ class DownloaderApp:
                 "mode": self.mode_var.get(),
                 "audio_format": self.audio_format_var.get(),
                 "geometry": self.root.geometry(),
+                "instagram_username": self.instagram_username,
             }
         )
         save_settings(self.settings)
@@ -1014,12 +1482,58 @@ class DownloaderApp:
         self._log(self.t("qualities_updated"))
         self.status_var.set(self.t("ready_download"))
 
+    def start_saved_download(self) -> None:
+        if instaloader is None:
+            messagebox.showerror(APP_TITLE, self.t("instagram_dependency_error"))
+            return
+        if not self._instagram_session_available():
+            messagebox.showwarning(APP_TITLE, self.t("instagram_no_session"))
+            return
+
+        output_dir = Path(self.output_dir_var.get()).expanduser()
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as error:
+            messagebox.showerror(APP_TITLE, self.t("folder_error", error=error))
+            return
+
+        ffmpeg = find_ffmpeg()
+        if not ffmpeg:
+            messagebox.showerror(
+                APP_TITLE,
+                self.t("ffmpeg_error"),
+            )
+            return
+
+        mode = self.mode_var.get()
+        self.cancel_event.clear()
+        self.progress_var.set(0)
+        self.details_var.set("")
+        self._set_busy(True)
+        self.status_var.set(self.t("instagram_saved_starting"))
+        self._log(
+            self.t(
+                "instagram_saved_log",
+                username=self.instagram_username,
+            )
+        )
+        self.worker = threading.Thread(
+            target=self._saved_download_worker,
+            args=(output_dir, mode, ffmpeg),
+            daemon=True,
+        )
+        self.worker.start()
+
     def start_download(self) -> None:
         url = self._get_url()
         if not url:
             messagebox.showwarning(APP_TITLE, self.t("paste_video"))
             return
         if not self._check_dependency(url):
+            return
+        instagram_target = parse_instagram_url(url) if is_instagram_url(url) else None
+        if instagram_target and instagram_target[0] == "saved":
+            self.start_saved_download()
             return
 
         output_dir = Path(self.output_dir_var.get()).expanduser()
@@ -1066,6 +1580,26 @@ class DownloaderApp:
         self.worker = threading.Thread(target=self._download_worker, args=args, daemon=True)
         self.worker.start()
 
+    def _saved_download_worker(
+        self,
+        output_dir: Path,
+        mode: str,
+        ffmpeg: str,
+    ) -> None:
+        try:
+            self._download_saved_instagram(output_dir, mode, ffmpeg)
+            if self.cancel_event.is_set():
+                self.events.put(("cancelled", None))
+            else:
+                self.events.put(("done", None))
+        except DownloadCancelled:
+            self.events.put(("cancelled", None))
+        except Exception as error:
+            if self.cancel_event.is_set():
+                self.events.put(("cancelled", None))
+            else:
+                self.events.put(("error", self._friendly_error(error)))
+
     def _download_worker(
         self,
         url: str,
@@ -1110,6 +1644,79 @@ class DownloaderApp:
             else:
                 self.events.put(("error", self._friendly_error(error)))
 
+    def _create_instaloader(
+        self,
+        output_dir: Path | None = None,
+        mode: str = "video",
+    ) -> Any:
+        if instaloader is None:
+            raise RuntimeError(self.t("instagram_dependency_error"))
+
+        options: dict[str, Any] = {
+            "sleep": False,
+            "quiet": True,
+            "download_pictures": mode == "video",
+            "download_videos": True,
+            "download_video_thumbnails": False,
+            "download_geotags": False,
+            "download_comments": False,
+            "save_metadata": False,
+            "compress_json": False,
+            "post_metadata_txt_pattern": "",
+            "storyitem_metadata_txt_pattern": "",
+            "max_connection_attempts": 3,
+            "request_timeout": 15,
+            "sanitize_paths": True,
+        }
+        if output_dir is not None:
+            options.update(
+                {
+                    "dirname_pattern": str(output_dir / "{target}"),
+                    "filename_pattern": "{date_utc}_UTC",
+                }
+            )
+        return instaloader.Instaloader(**options)
+
+    def _load_instagram_session(self, loader: Any) -> bool:
+        if not self.instagram_username or not INSTAGRAM_SESSION_PATH.is_file():
+            return False
+        try:
+            loader.load_session_from_file(
+                self.instagram_username,
+                filename=str(INSTAGRAM_SESSION_PATH),
+            )
+        except Exception as error:
+            raise RuntimeError(
+                self.t(
+                    "instagram_session_error",
+                    text=self._friendly_error(error),
+                )
+            ) from error
+        return True
+
+    def _instagram_http_headers(self) -> dict[str, str]:
+        loader = self._create_instaloader()
+        if not self._load_instagram_session(loader):
+            return {}
+
+        session = getattr(loader.context, "_session", None)
+        cookies = getattr(session, "cookies", None)
+        if cookies is None:
+            return {}
+        cookie_values = [
+            f"{cookie.name}={cookie.value}"
+            for cookie in cookies
+            if "instagram.com" in (cookie.domain or "")
+        ]
+        if not cookie_values:
+            return {}
+
+        headers = {"Cookie": "; ".join(cookie_values)}
+        user_agent = getattr(loader.context, "user_agent", "")
+        if user_agent:
+            headers["User-Agent"] = str(user_agent)
+        return headers
+
     def _download_with_yt_dlp(
         self,
         url: str,
@@ -1118,6 +1725,7 @@ class DownloaderApp:
         selector: str,
         ffmpeg: str,
         progress_hook: Any,
+        http_headers: dict[str, str] | None = None,
     ) -> None:
         if yt_dlp is None:
             raise RuntimeError(self.t("dependency_error"))
@@ -1136,6 +1744,8 @@ class DownloaderApp:
             "file_access_retries": 3,
             "socket_timeout": 15,
         }
+        if http_headers:
+            options["http_headers"] = http_headers
 
         if mode == "video":
             options["merge_output_format"] = "mp4"
@@ -1167,6 +1777,19 @@ class DownloaderApp:
             primary_error = RuntimeError(self.t("dependency_error"))
         else:
             try:
+                http_headers = self._instagram_http_headers()
+            except Exception as error:
+                http_headers = None
+                self.events.put(
+                    (
+                        "log",
+                        self.t(
+                            "instagram_session_error",
+                            text=self._friendly_error(error),
+                        ),
+                    )
+                )
+            try:
                 self._download_with_yt_dlp(
                     url,
                     output_dir,
@@ -1174,6 +1797,7 @@ class DownloaderApp:
                     selector,
                     ffmpeg,
                     progress_hook,
+                    http_headers,
                 )
                 return
             except DownloadCancelled:
@@ -1214,6 +1838,40 @@ class DownloaderApp:
                 )
             ) from fallback_error
 
+    def _download_saved_instagram(
+        self,
+        output_dir: Path,
+        mode: str,
+        ffmpeg: str,
+    ) -> None:
+        loader = self._create_instaloader(output_dir, mode)
+        self._load_instagram_session(loader)
+        self._raise_if_cancelled()
+
+        target = "instagram_saved"
+        media_root = output_dir / target
+        profile = instaloader.Profile.own_profile(loader.context)
+        saved_posts = profile.get_saved_posts()
+        post_count = 0
+
+        def post_filter(_post: Any) -> bool:
+            nonlocal post_count
+            self._raise_if_cancelled()
+            post_count += 1
+            return True
+
+        loader.posts_download_loop(
+            saved_posts,
+            target=target,
+            post_filter=post_filter,
+            total_count=getattr(saved_posts, "count", None),
+        )
+        self._raise_if_cancelled()
+        if post_count == 0 or not any(path.is_file() for path in media_root.rglob("*")):
+            raise RuntimeError(self.t("instagram_saved_no_media"))
+        if mode == "audio":
+            self._convert_instagram_audio(media_root, ffmpeg)
+
     def _download_with_instaloader(
         self,
         url: str,
@@ -1234,24 +1892,8 @@ class DownloaderApp:
 
         target = re.sub(r"[^A-Za-z0-9._-]+", "_", identifier).strip("._") or "instagram"
         media_root = output_dir / target
-        loader = instaloader.Instaloader(
-            sleep=False,
-            quiet=True,
-            dirname_pattern=str(output_dir / "{target}"),
-            filename_pattern="{date_utc}_UTC",
-            download_pictures=mode == "video",
-            download_videos=True,
-            download_video_thumbnails=False,
-            download_geotags=False,
-            download_comments=False,
-            save_metadata=False,
-            compress_json=False,
-            post_metadata_txt_pattern="",
-            storyitem_metadata_txt_pattern="",
-            max_connection_attempts=3,
-            request_timeout=15,
-            sanitize_paths=True,
-        )
+        loader = self._create_instaloader(output_dir, mode)
+        self._load_instagram_session(loader)
 
         self._raise_if_cancelled()
         post_count = 0
@@ -1367,18 +2009,24 @@ class DownloaderApp:
         self.is_closing = True
         self.cancel_event.set()
 
-        if self.worker and self.worker.is_alive():
+        if (
+            (self.worker and self.worker.is_alive())
+            or (self.auth_worker and self.auth_worker.is_alive())
+        ):
             self.status_var.set(self.t("stopping"))
             self.details_var.set(self.t("close_wait"))
             self._set_busy(True)
             self.cancel_button.configure(state="disabled")
-            self.root.after(100, self._wait_for_worker)
+            self.root.after(100, self._wait_for_workers)
         else:
             self.root.destroy()
 
-    def _wait_for_worker(self) -> None:
-        if self.worker and self.worker.is_alive():
-            self.root.after(100, self._wait_for_worker)
+    def _wait_for_workers(self) -> None:
+        if (
+            (self.worker and self.worker.is_alive())
+            or (self.auth_worker and self.auth_worker.is_alive())
+        ):
+            self.root.after(100, self._wait_for_workers)
             return
         self.root.destroy()
 
@@ -1386,7 +2034,51 @@ class DownloaderApp:
         try:
             while True:
                 event, payload = self.events.get_nowait()
-                if event == "progress":
+                if event == "auth_2fa":
+                    self.auth_pending_2fa = True
+                    if not self.is_closing:
+                        self._set_auth_busy(False)
+                        if self.auth_code_frame is not None:
+                            self.auth_code_frame.grid()
+                        if self.auth_action_button is not None:
+                            self.auth_action_button.configure(
+                                text=self.t("instagram_verify")
+                            )
+                        if self.auth_status_var is not None:
+                            self.auth_status_var.set(self.t("instagram_login_2fa"))
+                        auth_code_entry = getattr(self, "auth_code_entry", None)
+                        if auth_code_entry is not None:
+                            auth_code_entry.focus_set()
+                    self.root.after(100, self._refresh_account_status)
+                elif event == "auth_done":
+                    self.instagram_username = str(payload)
+                    self.auth_loader = None
+                    self.auth_pending_2fa = False
+                    self._save_settings()
+                    self._refresh_account_status()
+                    if not self.is_closing:
+                        success_text = self.t(
+                            "instagram_login_success",
+                            username=self.instagram_username,
+                        )
+                        self._close_auth_dialog()
+                        messagebox.showinfo(APP_TITLE, success_text)
+                    self.root.after(100, self._refresh_account_status)
+                elif event == "auth_error":
+                    self.auth_loader = None
+                    self.auth_pending_2fa = False
+                    if not self.is_closing:
+                        self._set_auth_busy(False)
+                        if self.auth_status_var is not None:
+                            self.auth_status_var.set(
+                                self.t("instagram_login_error", text=str(payload))
+                            )
+                        messagebox.showerror(
+                            APP_TITLE,
+                            self.t("instagram_login_error", text=str(payload)),
+                        )
+                    self.root.after(100, self._refresh_account_status)
+                elif event == "progress":
                     if not self.is_closing:
                         self._update_progress(payload)
                 elif event == "status":
@@ -1460,6 +2152,7 @@ class DownloaderApp:
         self.browse_button.configure(state=state)
         self.paste_button.configure(state=state)
         self.settings_button.configure(state=state)
+        self.saved_button.configure(state=state)
         self.download_button.configure(state=state)
         self.inspect_button.configure(state=state)
         self.quality_combo.configure(state="disabled" if busy else "readonly")
@@ -1472,7 +2165,15 @@ class DownloaderApp:
         text = str(error).strip()
         text = re.sub(r"^\s*ERROR:\s*", "", text, flags=re.IGNORECASE)
         lower_text = text.lower()
-        if "loginrequiredexception" in lower_text or "login required" in lower_text:
+        if any(
+            marker in lower_text
+            for marker in (
+                "loginrequiredexception",
+                "login required",
+                "privateprofilenotfollowedexception",
+                "private profile",
+            )
+        ):
             return self.t("instagram_login_required")
         if "Sign in to confirm" in text or "not a bot" in text.lower():
             return self.t("not_bot", text=text)
