@@ -21,18 +21,18 @@ if not exist ".venv\Scripts\python.exe" (
 )
 
 echo Installing build dependencies...
-".venv\Scripts\python.exe" -m pip install -q -r requirements.txt pyinstaller
+".venv\Scripts\python.exe" -m pip install -q -r build-requirements.txt
 if errorlevel 1 (
     echo Could not install build dependencies.
     pause
     exit /b 1
 )
 
-echo Building YouTubeDownloader.exe...
+echo Building portable YouTubeDownloader folder...
 ".venv\Scripts\python.exe" -m PyInstaller ^
     --noconfirm ^
     --clean ^
-    --onefile ^
+    --onedir ^
     --windowed ^
     --name YouTubeDownloader ^
     --icon icon.ico ^
@@ -48,6 +48,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo Done: dist\YouTubeDownloader.exe
+echo Done: dist\YouTubeDownloader\YouTubeDownloader.exe
+echo Keep the complete YouTubeDownloader folder together.
 echo Put ffmpeg.exe next to the EXE before downloading.
 pause

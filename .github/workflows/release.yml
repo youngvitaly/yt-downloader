@@ -21,20 +21,25 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.11.9"
 
       - name: Install build dependencies
         shell: pwsh
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt pyinstaller
+          python -m pip install -r build-requirements.txt
 
       - name: Download FFmpeg
         shell: pwsh
         env:
           FFMPEG_URL: https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-win64-gpl-8.1.zip
+          FFMPEG_SHA256: 642a86269f3b03d8f47f058ec9357fd93b6930018a4003092179b2c7116179b9
         run: |
           Invoke-WebRequest -Uri $env:FFMPEG_URL -OutFile ffmpeg.zip
+          $actualHash = (Get-FileHash ffmpeg.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actualHash -ne $env:FFMPEG_SHA256) {
+            throw "FFmpeg checksum mismatch: $actualHash"
+          }
           Expand-Archive -Path ffmpeg.zip -DestinationPath ffmpeg-dist
 
           $ffmpeg = Get-ChildItem -Path ffmpeg-dist -Filter ffmpeg.exe -Recurse |
@@ -52,7 +57,7 @@ jobs:
           python -m PyInstaller `
             --noconfirm `
             --clean `
-            --onefile `
+            --onedir `
             --windowed `
             --name YouTubeDownloader `
             --icon icon.ico `
@@ -61,31 +66,88 @@ jobs:
             --collect-all instaloader `
             app.py
 
-          Copy-Item dist\YouTubeDownloader.exe release\YouTubeDownloader.exe
+          Copy-Item dist\YouTubeDownloader\* release\ -Recurse -Force
           Copy-Item README.md release\README.md
           Copy-Item icon.png release\icon.png
 
           @"
           YouTube Downloader portable package
 
-          Run YouTubeDownloader.exe.
+          Keep all files and folders together, then run YouTubeDownloader.exe.
           Python is already bundled into the executable.
           ffmpeg.exe is included for video merging and audio conversion.
           Instagram public posts, Reels, carousels, and profiles use yt-dlp first,
           with Instaloader as a fallback.
           "@ | Set-Content -Path release\START-HERE.txt -Encoding UTF8
 
+      - name: Sign executable (optional)
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_BASE64) -or
+              [string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE_PASSWORD)) {
+            Write-Host "Signing skipped: certificate secrets are not configured."
+          } else {
+            $certificatePath = Join-Path $env:RUNNER_TEMP "yt-downloader-signing.pfx"
+            [IO.File]::WriteAllBytes(
+              $certificatePath,
+              [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_BASE64)
+            )
+
+            $signTool = Get-ChildItem `
+              "${env:ProgramFiles(x86)}\Windows Kits\10\bin" `
+              -Filter signtool.exe `
+              -Recurse `
+              -ErrorAction SilentlyContinue |
+              Sort-Object FullName |
+              Select-Object -Last 1
+            if (-not $signTool) {
+              throw "signtool.exe was not found on the runner"
+            }
+
+            & $signTool.FullName sign `
+              /fd SHA256 `
+              /f $certificatePath `
+              /p $env:WINDOWS_CERTIFICATE_PASSWORD `
+              /tr "http://timestamp.digicert.com" `
+              /td SHA256 `
+              release\YouTubeDownloader.exe
+            if ($LASTEXITCODE -ne 0) {
+              throw "Authenticode signing failed"
+            }
+            Remove-Item $certificatePath -Force
+          }
+
+      - name: Create portable ZIP
+        shell: pwsh
+        run: |
           Compress-Archive `
             -Path release\* `
             -DestinationPath YouTubeDownloader-windows-x64.zip `
             -CompressionLevel Optimal `
             -Force
 
+      - name: Create SHA-256 manifest
+        shell: pwsh
+        run: |
+          $zipHash = (Get-FileHash YouTubeDownloader-windows-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          $exeHash = (Get-FileHash release\YouTubeDownloader.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          $ffmpegHash = (Get-FileHash release\ffmpeg.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          @(
+            "$zipHash  YouTubeDownloader-windows-x64.zip"
+            "$exeHash  YouTubeDownloader.exe (inside ZIP)"
+            "$ffmpegHash  ffmpeg.exe (inside ZIP)"
+          ) | Set-Content -Path SHA256SUMS.txt -Encoding ASCII
+
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
           name: YouTubeDownloader-windows-x64
-          path: YouTubeDownloader-windows-x64.zip
+          path: |
+            YouTubeDownloader-windows-x64.zip
+            SHA256SUMS.txt
           if-no-files-found: error
 
       - name: Publish GitHub release
@@ -96,5 +158,6 @@ jobs:
         run: |
           gh release create "${{ github.ref_name }}" `
             YouTubeDownloader-windows-x64.zip `
+            SHA256SUMS.txt `
             --title "YouTube Downloader ${{ github.ref_name }}" `
             --generate-notes

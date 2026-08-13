@@ -1,2 +1,7 @@
-yt-dlp
-instaloader
+yt-dlp==2026.7.4
+instaloader==4.15.3
+requests==2.34.2
+certifi==2026.7.22
+charset-normalizer==3.5.0
+idna==3.18
+urllib3==2.7.0
