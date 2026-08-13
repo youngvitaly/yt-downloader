@@ -22,7 +22,7 @@ having to remember command-line options.
 
 For Instagram, the application tries `yt-dlp` first and passes the logged-in session when
 available. If that extractor cannot handle the link, Instaloader is used as a fallback for
-posts, Reels, carousels, profiles, and stories that the account can access.
+photo posts, Reels, carousels, profiles, and stories that the account can access.
 
 ### Download a ready-to-run release
 
@@ -36,9 +36,8 @@ do not need to install Python. Keep the complete folder contents together.
 ### Features
 
 - Regular YouTube videos and YouTube Shorts.
-- Public and account-accessible Instagram posts, Reels, carousels, profiles, and stories.
+- Public and account-accessible Instagram photo posts, Reels, carousels, profiles, and stories.
 - Optional Instagram login with local session reuse and 2FA support.
-- Download of the account's saved Instagram posts with one click.
 - Automatic Instagram fallback: `yt-dlp` first, Instaloader second.
 - Video mode with available resolutions from 360p up to 4K when provided by the source.
 - Audio mode with quality selection and MP3, M4A, or Opus output.
@@ -62,8 +61,8 @@ posts, so the Instaloader fallback downloads the media visible to the logged-in 
 3. Double-click `YouTubeDownloader.exe`.
 4. Paste a YouTube, Shorts, or Instagram link, select the mode and quality, then
    click **Download**.
-5. For private Instagram media or saved posts, open **Settings → Instagram account**, sign
-   in, complete 2FA if requested, and use the link or **Saved Instagram** button.
+5. For private Instagram media or stories, open **Settings → Instagram account**, sign in,
+   complete 2FA if requested, and paste the direct media link.
 
 Releases are built automatically by GitHub Actions when a version tag such as `v1.0.0` is
 published.
@@ -128,8 +127,8 @@ and the Instagram username. It is local user configuration and is excluded from 
 Instagram passwords are never written to `settings.json`. A local `instagram.session` file
 created by Instaloader is used for future logins and private downloads; protect the portable
 folder like any other folder containing an active login session. Logging out deletes that
-session file. The **Saved Instagram** action downloads the account's accessible saved posts;
-Instaloader does not provide reliable selection of one named Instagram Collection.
+session file. Instagram Collection URLs are not supported; paste a direct post, Reel, or
+story link instead.
 
 ### Project structure
 
@@ -182,9 +181,8 @@ Tkinter, `yt-dlp` и Instaloader уже находятся внутри portable
 ### Возможности
 
 - обычные видео YouTube и Shorts;
-- публичные и доступные аккаунту посты, Reels, карусели, stories и профили Instagram;
+- публичные и доступные аккаунту фото-посты, Reels, карусели, stories и профили Instagram;
 - необязательный вход в Instagram с повторным использованием локальной сессии и поддержкой 2FA;
-- скачивание сохранённых постов Instagram одной кнопкой;
 - автоматический fallback для Instagram: сначала `yt-dlp`, затем Instaloader;
 - видео от 360p до 4K, если такое качество доступно у источника;
 - аудио в MP3, M4A или Opus;
@@ -210,9 +208,8 @@ Tkinter, `yt-dlp` и Instaloader уже находятся внутри portable
 3. Запустите `YouTubeDownloader.exe` двойным кликом.
 4. Вставьте ссылку на YouTube, Shorts или Instagram, выберите режим и
    качество, нажмите **Download**.
-5. Для приватного Instagram-контента или сохранённых постов откройте **Настройки →
-   Аккаунт Instagram**, войдите, при необходимости введите код 2FA и используйте ссылку
-   или кнопку **Сохранённое Instagram**.
+5. Для приватного Instagram-контента или stories откройте **Настройки → Аккаунт Instagram**,
+   войдите, при необходимости введите код 2FA и вставьте прямую ссылку на медиа.
 
 Релизы собираются автоматически через GitHub Actions после публикации тега версии,
 например `v1.0.0`.
@@ -272,8 +269,8 @@ build.bat
 Пароль Instagram никогда не записывается в `settings.json`. Для повторного входа и
 приватных загрузок используется локальный файл `instagram.session`, созданный Instaloader.
 Защитите portable-папку как папку с активной сессией. Кнопка выхода удаляет этот файл.
-Кнопка **Сохранённое Instagram** скачивает доступные аккаунту сохранённые посты; Instaloader
-не предоставляет надёжного выбора отдельной именованной Collection.
+Ссылки на Instagram Collection не поддерживаются; вставляйте прямую ссылку на пост, Reel
+или story.
 
 ### Структура проекта
 

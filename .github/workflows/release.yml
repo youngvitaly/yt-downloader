@@ -77,7 +77,7 @@ jobs:
           Python is already bundled into the executable.
           ffmpeg.exe is included for video merging and audio conversion.
           Instagram media uses yt-dlp first, with Instaloader as a fallback. Optional
-          Instagram login supports account-accessible private media and saved posts.
+          Instagram login supports account-accessible private media and stories.
           "@ | Set-Content -Path release\START-HERE.txt -Encoding UTF8
 
       - name: Sign executable (optional)

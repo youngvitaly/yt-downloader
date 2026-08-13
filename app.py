@@ -59,7 +59,6 @@ TEXT = {
         "browse": "Browse…",
         "settings": "Settings",
         "download": "Download",
-        "instagram_saved": "Saved Instagram",
         "cancel": "Cancel",
         "open_folder": "Open folder",
         "ready": "Ready",
@@ -114,13 +113,10 @@ TEXT = {
         "instagram_login_error": "Instagram login failed:\n\n{text}",
         "instagram_logout_confirm": "Delete the saved Instagram session for {username}?",
         "instagram_logout_error": "Could not delete the Instagram session:\n\n{text}",
-        "instagram_no_session": "Log in to Instagram in Settings before downloading private content or saved posts.",
+        "instagram_no_session": "Log in to Instagram in Settings before downloading private content.",
         "instagram_session_error": "The saved Instagram session could not be loaded. Log in again in Settings.\n\n{text}",
         "instagram_session_note": "Only Instaloader's session file is kept locally; your password is not saved. Protect this folder like a login credential.",
-        "instagram_private_note": "Login unlocks private media and stories visible to this account, plus saved posts.",
-        "instagram_saved_starting": "Downloading saved Instagram posts…",
-        "instagram_saved_log": "Downloading saved Instagram posts for {username}.",
-        "instagram_saved_no_media": "No downloadable saved Instagram media was found.",
+        "instagram_private_note": "Login unlocks private media and stories visible to this account.",
         "save": "Save",
         "close": "Close",
         "per_second": "/s",
@@ -129,6 +125,7 @@ TEXT = {
         "not_bot": "YouTube asked to confirm that you are not a bot. "
         "Try updating yt-dlp or using browser cookies.\n\n{text}",
         "ffmpeg_processing": "FFmpeg could not process the file.\n\n{text}",
+        "yt_dlp_exit": "yt-dlp returned an error code: {code}.",
         "instagram_detected": "Instagram link detected.",
         "instagram_quality_note": "Instagram uses the best available media quality.",
         "instagram_ytdlp_primary": "Trying yt-dlp for Instagram first.",
@@ -139,7 +136,9 @@ TEXT = {
         "{primary}\n\nInstaloader is not installed. Run run.bat to install all dependencies.",
         "instagram_fallback_error": "Instagram download failed.\n\n"
         "yt-dlp: {primary}\n\nInstaloader: {fallback}",
-        "instagram_invalid": "This Instagram link is not a supported post, profile, story, or saved-post URL.",
+        "instagram_invalid": "This Instagram link is not a supported post, profile, or story URL.",
+        "instagram_collection_unsupported": "Instagram Collections are not supported. "
+        "Paste a direct post, Reel, or story link instead.",
         "instagram_no_media": "No Instagram media was found.",
         "instagram_no_audio": "The Instagram content does not contain a video or audio track.",
         "instagram_processing": "Converting Instagram video to audio…",
@@ -161,7 +160,6 @@ TEXT = {
         "browse": "Обзор…",
         "settings": "Настройки",
         "download": "Скачать",
-        "instagram_saved": "Сохранённое Instagram",
         "cancel": "Отмена",
         "open_folder": "Открыть папку",
         "ready": "Готово",
@@ -216,13 +214,10 @@ TEXT = {
         "instagram_login_error": "Не удалось войти в Instagram:\n\n{text}",
         "instagram_logout_confirm": "Удалить сохранённую сессию Instagram для {username}?",
         "instagram_logout_error": "Не удалось удалить сессию Instagram:\n\n{text}",
-        "instagram_no_session": "Сначала войдите в Instagram через Настройки, чтобы скачивать приватный контент или сохранённые посты.",
+        "instagram_no_session": "Сначала войдите в Instagram через Настройки, чтобы скачивать приватный контент.",
         "instagram_session_error": "Не удалось загрузить сохранённую сессию Instagram. Войдите снова через Настройки.\n\n{text}",
         "instagram_session_note": "Локально хранится только файл сессии Instaloader; пароль не сохраняется. Защитите эту папку как данные для входа.",
-        "instagram_private_note": "Вход открывает приватные медиа и stories, доступные этому аккаунту, а также сохранённые посты.",
-        "instagram_saved_starting": "Скачиваю сохранённые посты Instagram…",
-        "instagram_saved_log": "Скачиваю сохранённые посты Instagram для {username}.",
-        "instagram_saved_no_media": "Скачиваемые сохранённые медиа Instagram не найдены.",
+        "instagram_private_note": "Вход открывает приватные медиа и stories, доступные этому аккаунту.",
         "save": "Сохранить",
         "close": "Закрыть",
         "per_second": "/с",
@@ -231,6 +226,7 @@ TEXT = {
         "not_bot": "YouTube запросил подтверждение, что вы не бот. "
         "Попробуйте обновить yt-dlp или использовать cookies браузера.\n\n{text}",
         "ffmpeg_processing": "Не удалось обработать файл через FFmpeg.\n\n{text}",
+        "yt_dlp_exit": "yt-dlp вернул код ошибки: {code}.",
         "instagram_detected": "Обнаружена ссылка Instagram.",
         "instagram_quality_note": "Для Instagram используется лучшее доступное качество.",
         "instagram_ytdlp_primary": "Сначала пробую скачать Instagram через yt-dlp.",
@@ -241,7 +237,9 @@ TEXT = {
         "{primary}\n\nInstaloader не установлен. Запустите run.bat для установки зависимостей.",
         "instagram_fallback_error": "Не удалось скачать Instagram.\n\n"
         "yt-dlp: {primary}\n\nInstaloader: {fallback}",
-        "instagram_invalid": "Это не поддерживаемая ссылка Instagram на пост, профиль, story или сохранённые посты.",
+        "instagram_invalid": "Это не поддерживаемая ссылка Instagram на пост, профиль или story.",
+        "instagram_collection_unsupported": "Коллекции Instagram не поддерживаются. "
+        "Вставьте прямую ссылку на пост, Reel или story.",
         "instagram_no_media": "Медиа Instagram не найдено.",
         "instagram_no_audio": "В контенте Instagram нет видео или аудиодорожки.",
         "instagram_processing": "Конвертирую видео Instagram в аудио…",
@@ -413,10 +411,8 @@ def parse_instagram_url(url: str) -> tuple[str, str] | None:
 
     section = parts[0].lower()
     lower_parts = [part.lower() for part in parts]
-    if section == "saved" or (
-        section == "your_activity" and "saved" in lower_parts[1:]
-    ):
-        return "saved", "saved"
+    if section == "saved" or "saved" in lower_parts[1:]:
+        return "collection", parts[0]
     if section in {"p", "reel", "tv"} and len(parts) > 1:
         return "post", parts[1]
     if section == "stories":
@@ -756,32 +752,26 @@ class DownloaderApp:
         actions = ttk.Frame(main)
         actions.grid(row=6, column=0, columnspan=3, sticky="ew", pady=(12, 8))
         actions.columnconfigure(0, weight=1)
-        self.saved_button = ttk.Button(
-            actions,
-            text=self.t("instagram_saved"),
-            command=self.start_saved_download,
-        )
-        self.saved_button.grid(row=0, column=1, sticky="e", padx=(8, 0))
         self.download_button = ttk.Button(
             actions,
             text=self.t("download"),
             command=self.start_download,
             style="Accent.TButton",
         )
-        self.download_button.grid(row=0, column=2, sticky="e", padx=(8, 0))
+        self.download_button.grid(row=0, column=1, sticky="e", padx=(8, 0))
         self.cancel_button = ttk.Button(
             actions,
             text=self.t("cancel"),
             command=self.cancel_download,
             state="disabled",
         )
-        self.cancel_button.grid(row=0, column=3, sticky="e", padx=(8, 0))
+        self.cancel_button.grid(row=0, column=2, sticky="e", padx=(8, 0))
         self.open_folder_button = ttk.Button(
             actions,
             text=self.t("open_folder"),
             command=self.open_output_dir,
         )
-        self.open_folder_button.grid(row=0, column=4, sticky="e", padx=(8, 0))
+        self.open_folder_button.grid(row=0, column=3, sticky="e", padx=(8, 0))
 
         self.progressbar = ttk.Progressbar(
             main,
@@ -1330,7 +1320,6 @@ class DownloaderApp:
         self.audio_format_label.configure(text=self.t("audio_format"))
         self.folder_label.configure(text=self.t("folder"))
         self.browse_button.configure(text=self.t("browse"))
-        self.saved_button.configure(text=self.t("instagram_saved"))
         self.download_button.configure(text=self.t("download"))
         self.cancel_button.configure(text=self.t("cancel"))
         self.open_folder_button.configure(text=self.t("open_folder"))
@@ -1382,10 +1371,25 @@ class DownloaderApp:
     def _get_url(self) -> str:
         return self.url_var.get().strip()
 
+    def _reject_instagram_collection(self, url: str) -> bool:
+        target_info = parse_instagram_url(url) if is_instagram_url(url) else None
+        if not target_info or target_info[0] != "collection":
+            return False
+        self.status_var.set(self.t("error"))
+        self.details_var.set("")
+        self._log(self.t("instagram_collection_unsupported"))
+        messagebox.showwarning(
+            APP_TITLE,
+            self.t("instagram_collection_unsupported"),
+        )
+        return True
+
     def inspect_url(self) -> None:
         url = self._get_url()
         if not url:
             messagebox.showwarning(APP_TITLE, self.t("paste_video"))
+            return
+        if self._reject_instagram_collection(url):
             return
         if not self._check_dependency(url):
             return
@@ -1482,58 +1486,14 @@ class DownloaderApp:
         self._log(self.t("qualities_updated"))
         self.status_var.set(self.t("ready_download"))
 
-    def start_saved_download(self) -> None:
-        if instaloader is None:
-            messagebox.showerror(APP_TITLE, self.t("instagram_dependency_error"))
-            return
-        if not self._instagram_session_available():
-            messagebox.showwarning(APP_TITLE, self.t("instagram_no_session"))
-            return
-
-        output_dir = Path(self.output_dir_var.get()).expanduser()
-        try:
-            output_dir.mkdir(parents=True, exist_ok=True)
-        except OSError as error:
-            messagebox.showerror(APP_TITLE, self.t("folder_error", error=error))
-            return
-
-        ffmpeg = find_ffmpeg()
-        if not ffmpeg:
-            messagebox.showerror(
-                APP_TITLE,
-                self.t("ffmpeg_error"),
-            )
-            return
-
-        mode = self.mode_var.get()
-        self.cancel_event.clear()
-        self.progress_var.set(0)
-        self.details_var.set("")
-        self._set_busy(True)
-        self.status_var.set(self.t("instagram_saved_starting"))
-        self._log(
-            self.t(
-                "instagram_saved_log",
-                username=self.instagram_username,
-            )
-        )
-        self.worker = threading.Thread(
-            target=self._saved_download_worker,
-            args=(output_dir, mode, ffmpeg),
-            daemon=True,
-        )
-        self.worker.start()
-
     def start_download(self) -> None:
         url = self._get_url()
         if not url:
             messagebox.showwarning(APP_TITLE, self.t("paste_video"))
             return
-        if not self._check_dependency(url):
+        if self._reject_instagram_collection(url):
             return
-        instagram_target = parse_instagram_url(url) if is_instagram_url(url) else None
-        if instagram_target and instagram_target[0] == "saved":
-            self.start_saved_download()
+        if not self._check_dependency(url):
             return
 
         output_dir = Path(self.output_dir_var.get()).expanduser()
@@ -1579,26 +1539,6 @@ class DownloaderApp:
         args = (url, output_dir, mode, selector, ffmpeg)
         self.worker = threading.Thread(target=self._download_worker, args=args, daemon=True)
         self.worker.start()
-
-    def _saved_download_worker(
-        self,
-        output_dir: Path,
-        mode: str,
-        ffmpeg: str,
-    ) -> None:
-        try:
-            self._download_saved_instagram(output_dir, mode, ffmpeg)
-            if self.cancel_event.is_set():
-                self.events.put(("cancelled", None))
-            else:
-                self.events.put(("done", None))
-        except DownloadCancelled:
-            self.events.put(("cancelled", None))
-        except Exception as error:
-            if self.cancel_event.is_set():
-                self.events.put(("cancelled", None))
-            else:
-                self.events.put(("error", self._friendly_error(error)))
 
     def _download_worker(
         self,
@@ -1761,7 +1701,9 @@ class DownloaderApp:
             ]
 
         with yt_dlp.YoutubeDL(options) as downloader:
-            downloader.download([url])
+            result = downloader.download([url])
+        if result:
+            raise RuntimeError(self.t("yt_dlp_exit", code=result))
 
     def _download_instagram(
         self,
@@ -1838,40 +1780,6 @@ class DownloaderApp:
                 )
             ) from fallback_error
 
-    def _download_saved_instagram(
-        self,
-        output_dir: Path,
-        mode: str,
-        ffmpeg: str,
-    ) -> None:
-        loader = self._create_instaloader(output_dir, mode)
-        self._load_instagram_session(loader)
-        self._raise_if_cancelled()
-
-        target = "instagram_saved"
-        media_root = output_dir / target
-        profile = instaloader.Profile.own_profile(loader.context)
-        saved_posts = profile.get_saved_posts()
-        post_count = 0
-
-        def post_filter(_post: Any) -> bool:
-            nonlocal post_count
-            self._raise_if_cancelled()
-            post_count += 1
-            return True
-
-        loader.posts_download_loop(
-            saved_posts,
-            target=target,
-            post_filter=post_filter,
-            total_count=getattr(saved_posts, "count", None),
-        )
-        self._raise_if_cancelled()
-        if post_count == 0 or not any(path.is_file() for path in media_root.rglob("*")):
-            raise RuntimeError(self.t("instagram_saved_no_media"))
-        if mode == "audio":
-            self._convert_instagram_audio(media_root, ffmpeg)
-
     def _download_with_instaloader(
         self,
         url: str,
@@ -1887,6 +1795,8 @@ class DownloaderApp:
             raise RuntimeError(self.t("instagram_invalid"))
 
         target_kind, identifier = target_info
+        if target_kind == "collection":
+            raise RuntimeError(self.t("instagram_collection_unsupported"))
         if target_kind == "story" and not identifier:
             raise RuntimeError(self.t("instagram_invalid"))
 
@@ -2152,7 +2062,6 @@ class DownloaderApp:
         self.browse_button.configure(state=state)
         self.paste_button.configure(state=state)
         self.settings_button.configure(state=state)
-        self.saved_button.configure(state=state)
         self.download_button.configure(state=state)
         self.inspect_button.configure(state=state)
         self.quality_combo.configure(state="disabled" if busy else "readonly")
