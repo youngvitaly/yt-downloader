@@ -14,6 +14,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 from typing import Any
 from urllib.parse import unquote, urlparse
+from urllib.request import Request, urlopen
 
 try:
     import yt_dlp
@@ -26,7 +27,13 @@ except ImportError:
     instaloader = None
 
 
+APP_VERSION = "1.3.3"
 APP_TITLE = "YouTube & Instagram Downloader"
+GITHUB_RELEASE_API = (
+    "https://api.github.com/repos/youngvitaly/yt-downloader/releases/latest"
+)
+RELEASE_ZIP_NAME = "YouTubeDownloader-windows-x64.zip"
+RELEASE_CHECKSUM_NAME = "SHA256SUMS.txt"
 DEFAULT_OUTPUT_DIR = Path.home() / "Downloads"
 DEFAULT_SETTINGS = {
     "language": "en",
@@ -95,6 +102,18 @@ TEXT = {
         "settings_title": "Settings",
         "language": "Language:",
         "theme": "Theme:",
+        "updates": "Updates",
+        "app_version": "Current version: {version}",
+        "check_updates": "Check for updates",
+        "checking_updates": "Checking for updates…",
+        "up_to_date": "You are using the latest version ({version}).",
+        "update_available_status": "Update available: {version}.",
+        "update_available": "Version {version} is available.\n\n"
+        "Download it, close the application, and restart with the new version?",
+        "update_starting": "The update is starting. The application will close and restart.",
+        "update_error": "Could not check for updates:\n\n{text}",
+        "updater_missing": "The automatic updater is included only in the packaged portable application.",
+        "update_start_error": "Could not start the automatic update:\n\n{text}",
         "instagram_account": "Instagram account",
         "instagram_status_logged_in": "Logged in as {username}",
         "instagram_status_logged_out": "Not logged in",
@@ -196,6 +215,18 @@ TEXT = {
         "settings_title": "Настройки",
         "language": "Язык:",
         "theme": "Тема:",
+        "updates": "Обновления",
+        "app_version": "Текущая версия: {version}",
+        "check_updates": "Проверить обновления",
+        "checking_updates": "Проверяю обновления…",
+        "up_to_date": "Установлена последняя версия ({version}).",
+        "update_available_status": "Доступно обновление: {version}.",
+        "update_available": "Доступна версия {version}.\n\n"
+        "Скачать её, закрыть приложение и перезапустить новую версию?",
+        "update_starting": "Обновление запускается. Приложение закроется и перезапустится.",
+        "update_error": "Не удалось проверить обновления:\n\n{text}",
+        "updater_missing": "Автообновлятор доступен только в упакованной portable-версии.",
+        "update_start_error": "Не удалось запустить автообновление:\n\n{text}",
         "instagram_account": "Аккаунт Instagram",
         "instagram_status_logged_in": "Выполнен вход: {username}",
         "instagram_status_logged_out": "Вход не выполнен",
@@ -422,6 +453,95 @@ def parse_instagram_url(url: str) -> tuple[str, str] | None:
     return "profile", parts[0]
 
 
+class UpdateError(RuntimeError):
+    """Raised when the GitHub release metadata is incomplete or invalid."""
+
+
+def version_parts(value: str) -> tuple[int, ...] | None:
+    normalized = value.strip().lstrip("vV")
+    if not normalized:
+        return None
+    pieces = normalized.split(".")
+    if any(not piece.isdigit() for piece in pieces):
+        return None
+    return tuple(int(piece) for piece in pieces)
+
+
+def is_newer_version(candidate: str, current: str) -> bool:
+    candidate_parts = version_parts(candidate)
+    current_parts = version_parts(current)
+    if candidate_parts is None or current_parts is None:
+        return False
+    length = max(len(candidate_parts), len(current_parts))
+    return (
+        candidate_parts + (0,) * (length - len(candidate_parts))
+        > current_parts + (0,) * (length - len(current_parts))
+    )
+
+
+def github_asset_url(asset: dict[str, Any]) -> str:
+    url = asset.get("browser_download_url")
+    if not isinstance(url, str):
+        raise UpdateError("GitHub release asset has no download URL")
+    parsed = urlparse(url)
+    if parsed.scheme != "https" or parsed.netloc.lower() not in {
+        "github.com",
+        "www.github.com",
+    }:
+        raise UpdateError("GitHub release asset URL is not trusted")
+    return url
+
+
+def fetch_latest_release() -> dict[str, Any]:
+    request = Request(
+        GITHUB_RELEASE_API,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": f"YouTubeDownloader/{APP_VERSION}",
+        },
+    )
+    try:
+        with urlopen(request, timeout=10) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except Exception as error:
+        raise UpdateError(str(error)) from error
+
+    if not isinstance(payload, dict):
+        raise UpdateError("GitHub returned an invalid release response")
+    tag = payload.get("tag_name")
+    latest_version = version_parts(str(tag)) if isinstance(tag, str) else None
+    if latest_version is None:
+        raise UpdateError("GitHub release has an invalid version tag")
+
+    assets = payload.get("assets")
+    if not isinstance(assets, list):
+        raise UpdateError("GitHub release has no assets")
+    assets_by_name = {
+        asset.get("name"): asset
+        for asset in assets
+        if isinstance(asset, dict) and isinstance(asset.get("name"), str)
+    }
+    zip_asset = assets_by_name.get(RELEASE_ZIP_NAME)
+    checksum_asset = assets_by_name.get(RELEASE_CHECKSUM_NAME)
+    if not isinstance(zip_asset, dict) or not isinstance(checksum_asset, dict):
+        raise UpdateError("GitHub release is missing the portable package or checksum")
+
+    digest = zip_asset.get("digest")
+    expected_sha256 = ""
+    if isinstance(digest, str) and digest.lower().startswith("sha256:"):
+        expected_sha256 = digest.split(":", 1)[1].strip().lower()
+
+    return {
+        "tag": tag,
+        "version": ".".join(str(part) for part in latest_version),
+        "is_newer": is_newer_version(tag, APP_VERSION),
+        "download_url": github_asset_url(zip_asset),
+        "checksum_url": github_asset_url(checksum_asset),
+        "expected_sha256": expected_sha256,
+        "release_url": payload.get("html_url") or "",
+    }
+
+
 class DownloaderApp:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
@@ -449,6 +569,7 @@ class DownloaderApp:
         self.events: queue.Queue[tuple[str, Any]] = queue.Queue()
         self.worker: threading.Thread | None = None
         self.auth_worker: threading.Thread | None = None
+        self.update_worker: threading.Thread | None = None
         self.auth_loader: Any = None
         self.auth_login_username = ""
         self.auth_pending_2fa = False
@@ -460,6 +581,10 @@ class DownloaderApp:
         self.settings_account_status_var: tk.StringVar | None = None
         self.settings_login_button: ttk.Button | None = None
         self.settings_logout_button: ttk.Button | None = None
+        self.settings_update_status_var: tk.StringVar | None = None
+        self.settings_update_button: ttk.Button | None = None
+        self.update_available: dict[str, Any] | None = None
+        self.update_in_progress = False
         self.cancel_event = threading.Event()
         self.current_title = ""
         self.is_closing = False
@@ -492,6 +617,7 @@ class DownloaderApp:
         self.root.bind_all("<Shift-KeyPress-Insert>", self.paste_url, add="+")
         self._on_mode_changed()
         self.root.after(100, self._process_events)
+        self.root.after(1500, self._auto_check_for_updates)
 
     def t(self, key: str, **values: Any) -> str:
         text = TEXT.get(self.language, TEXT["en"]).get(key, TEXT["en"].get(key, key))
@@ -987,8 +1113,53 @@ class DownloaderApp:
         )
         self.settings_login_button.pack(side="right")
 
+        ttk.Separator(frame, orient="horizontal").grid(
+            row=8,
+            column=0,
+            columnspan=2,
+            sticky="ew",
+            pady=(10, 6),
+        )
+        ttk.Label(
+            frame,
+            text=self.t("updates"),
+            font=("Segoe UI", 10, "bold"),
+        ).grid(row=9, column=0, columnspan=2, sticky="w", pady=(0, 2))
+        if self.update_available:
+            update_status = self.t(
+                "update_available_status",
+                version=self.update_available["version"],
+            )
+        else:
+            update_status = self.t("app_version", version=APP_VERSION)
+        self.settings_update_status_var = tk.StringVar(value=update_status)
+        ttk.Label(frame, textvariable=self.settings_update_status_var).grid(
+            row=10,
+            column=0,
+            columnspan=2,
+            sticky="w",
+            pady=2,
+        )
+        self.settings_update_button = ttk.Button(
+            frame,
+            text=self.t("check_updates"),
+            command=lambda: self.check_for_updates(manual=True),
+            state=(
+                "disabled"
+                if self.update_worker and self.update_worker.is_alive()
+                else "normal"
+            ),
+        )
+        self.settings_update_button.grid(
+            row=11,
+            column=0,
+            columnspan=2,
+            sticky="e",
+            pady=(2, 4),
+        )
+
         buttons = ttk.Frame(frame)
-        buttons.grid(row=8, column=0, columnspan=2, sticky="e", pady=(12, 0))
+        buttons.grid(row=12, column=0, columnspan=2, sticky="e", pady=(12, 0))
 
         def close_dialog() -> None:
             try:
@@ -999,6 +1170,8 @@ class DownloaderApp:
             self.settings_account_status_var = None
             self.settings_login_button = None
             self.settings_logout_button = None
+            self.settings_update_status_var = None
+            self.settings_update_button = None
             dialog.destroy()
 
         def apply_settings() -> None:
@@ -1305,6 +1478,116 @@ class DownloaderApp:
         self.auth_loader = None
         self._save_settings()
         self._refresh_account_status()
+
+    def _auto_check_for_updates(self) -> None:
+        if not self.is_closing:
+            self.check_for_updates(manual=False)
+
+    def _set_update_status(self, text: str) -> None:
+        if self.settings_update_status_var is not None:
+            try:
+                self.settings_update_status_var.set(text)
+            except tk.TclError:
+                pass
+
+    def check_for_updates(self, manual: bool = False) -> None:
+        if self.is_closing or self.update_in_progress:
+            return
+        if self.update_worker and self.update_worker.is_alive():
+            return
+        self._set_update_status(self.t("checking_updates"))
+        if self.settings_update_button is not None:
+            self.settings_update_button.configure(state="disabled")
+        self.update_worker = threading.Thread(
+            target=self._update_check_worker,
+            args=(manual,),
+            daemon=True,
+        )
+        self.update_worker.start()
+
+    def _update_check_worker(self, manual: bool) -> None:
+        try:
+            release = fetch_latest_release()
+        except Exception as error:
+            self.events.put(
+                (
+                    "update_error",
+                    {"manual": manual, "text": str(error)},
+                )
+            )
+            return
+        self.events.put(
+            (
+                "update_result",
+                {"manual": manual, "release": release},
+            )
+        )
+
+    def _find_updater(self) -> Path | None:
+        if not getattr(sys, "frozen", False):
+            return None
+        updater = app_directory() / "YouTubeDownloaderUpdater.exe"
+        return updater if updater.is_file() else None
+
+    def _prompt_update(self, release: dict[str, Any]) -> None:
+        if not release.get("is_newer"):
+            return
+        version = str(release.get("version") or release.get("tag") or "")
+        if messagebox.askyesno(
+            APP_TITLE,
+            self.t("update_available", version=version),
+        ):
+            self._start_update(release)
+
+    def _start_update(self, release: dict[str, Any]) -> None:
+        if self.update_in_progress:
+            return
+        updater = self._find_updater()
+        if updater is None:
+            messagebox.showinfo(APP_TITLE, self.t("updater_missing"))
+            return
+
+        app_exe = Path(sys.executable).resolve()
+        arguments = [
+            str(updater),
+            "--app-dir",
+            str(app_directory()),
+            "--app-exe",
+            str(app_exe),
+            "--pid",
+            str(os.getpid()),
+            "--download-url",
+            str(release["download_url"]),
+            "--checksum-url",
+            str(release["checksum_url"]),
+            "--expected-version",
+            str(release["version"]),
+        ]
+        expected_sha256 = str(release.get("expected_sha256") or "")
+        if expected_sha256:
+            arguments.extend(["--expected-sha256", expected_sha256])
+
+        creationflags = (
+            getattr(subprocess, "DETACHED_PROCESS", 0)
+            | getattr(subprocess, "CREATE_NO_WINDOW", 0)
+        )
+        try:
+            subprocess.Popen(
+                arguments,
+                cwd=str(app_directory()),
+                creationflags=creationflags,
+                close_fds=True,
+            )
+        except OSError as error:
+            messagebox.showerror(
+                APP_TITLE,
+                self.t("update_start_error", text=error),
+            )
+            return
+
+        self.update_in_progress = True
+        self._set_update_status(self.t("update_starting"))
+        self._on_close()
 
     def _refresh_texts(self) -> None:
         self.root.title(APP_TITLE)
@@ -1922,6 +2205,7 @@ class DownloaderApp:
         if (
             (self.worker and self.worker.is_alive())
             or (self.auth_worker and self.auth_worker.is_alive())
+            or (self.update_worker and self.update_worker.is_alive())
         ):
             self.status_var.set(self.t("stopping"))
             self.details_var.set(self.t("close_wait"))
@@ -1935,6 +2219,7 @@ class DownloaderApp:
         if (
             (self.worker and self.worker.is_alive())
             or (self.auth_worker and self.auth_worker.is_alive())
+            or (self.update_worker and self.update_worker.is_alive())
         ):
             self.root.after(100, self._wait_for_workers)
             return
@@ -1944,7 +2229,43 @@ class DownloaderApp:
         try:
             while True:
                 event, payload = self.events.get_nowait()
-                if event == "auth_2fa":
+                if event == "update_result":
+                    manual = bool(payload.get("manual"))
+                    release = payload["release"]
+                    if self.settings_update_button is not None:
+                        self.settings_update_button.configure(state="normal")
+                    if release.get("is_newer"):
+                        self.update_available = release
+                        self._set_update_status(
+                            self.t(
+                                "update_available_status",
+                                version=release["version"],
+                            )
+                        )
+                        if not self.is_closing:
+                            self._prompt_update(release)
+                    else:
+                        self.update_available = None
+                        self._set_update_status(
+                            self.t("app_version", version=APP_VERSION)
+                        )
+                        if manual and not self.is_closing:
+                            messagebox.showinfo(
+                                APP_TITLE,
+                                self.t("up_to_date", version=APP_VERSION),
+                            )
+                elif event == "update_error":
+                    if self.settings_update_button is not None:
+                        self.settings_update_button.configure(state="normal")
+                    self._set_update_status(
+                        self.t("app_version", version=APP_VERSION)
+                    )
+                    if payload.get("manual") and not self.is_closing:
+                        messagebox.showerror(
+                            APP_TITLE,
+                            self.t("update_error", text=payload.get("text", "")),
+                        )
+                elif event == "auth_2fa":
                     self.auth_pending_2fa = True
                     if not self.is_closing:
                         self._set_auth_busy(False)

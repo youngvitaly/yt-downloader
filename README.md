@@ -29,9 +29,10 @@ photo posts, Reels, carousels, profiles, and stories that the account can access
 Open the [Latest release](https://github.com/youngvitaly/yt-downloader/releases/latest)
 and download `YouTubeDownloader-windows-x64.zip`.
 
-The portable archive contains `YouTubeDownloader.exe`, its support folder, and `ffmpeg.exe`.
-Python, Tkinter, `yt-dlp`, and Instaloader are bundled in the portable folder, so end users
-do not need to install Python. Keep the complete folder contents together.
+The portable archive contains `YouTubeDownloader.exe`, `YouTubeDownloaderUpdater.exe`, its
+support folder, and `ffmpeg.exe`. Python, Tkinter, `yt-dlp`, and Instaloader are bundled in
+the portable folder, so end users do not need to install Python. Keep the complete folder
+contents together.
 
 ### Features
 
@@ -49,6 +50,8 @@ do not need to install Python. Keep the complete folder contents together.
 - Settings persisted in `settings.json`.
 - Graceful shutdown: closing the window stops the worker before the process exits.
 - Custom application icon embedded in the executable and loaded by the window.
+- Automatic update checks at startup and from Settings, using a separate updater process.
+- The updater verifies the release SHA-256 manifest, preserves user files, and restarts the app.
 - SHA-256 checksums published with every release.
 
 The application processes one link at a time. An Instagram profile may contain multiple
@@ -57,21 +60,31 @@ posts, so the Instaloader fallback downloads the media visible to the logged-in 
 ### Quick start with the executable
 
 1. Download and extract `YouTubeDownloader-windows-x64.zip`.
-2. Keep `YouTubeDownloader.exe`, `_internal`, and `ffmpeg.exe` in the same folder.
+2. Keep `YouTubeDownloader.exe`, `YouTubeDownloaderUpdater.exe`, `_internal`, and
+   `ffmpeg.exe` in the same folder.
 3. Double-click `YouTubeDownloader.exe`.
 4. Paste a YouTube, Shorts, or Instagram link, select the mode and quality, then
    click **Download**.
 5. For private Instagram media or stories, open **Settings → Instagram account**, sign in,
    complete 2FA if requested, and paste the direct media link.
 
+The app checks GitHub Releases in the background at startup. When a newer version is found,
+it asks for confirmation, then the separate `YouTubeDownloaderUpdater.exe` downloads the
+new ZIP, verifies `SHA256SUMS.txt`, waits for the app to close, replaces the program files,
+preserves `settings.json` and `instagram.session`, and starts the new version. You can also
+run the check from **Settings → Updates**.
+
 Releases are built automatically by GitHub Actions when a version tag such as `v1.0.0` is
-published.
+published. Before creating a new tag, update `APP_VERSION` in `app.py` and keep the version
+tag in sync; the release workflow validates this automatically. Release notes and
+`START-HERE.txt` should continue to mention the automatic updater.
 
 The portable release expects this layout:
 
 ```text
 release/
 ├── YouTubeDownloader.exe
+├── YouTubeDownloaderUpdater.exe
 ├── _internal/
 └── ffmpeg.exe
 ```
@@ -134,6 +147,7 @@ story link instead.
 
 ```text
 app.py          Windows GUI, yt-dlp integration, login, and Instagram fallback
+updater.py      Separate signed updater and SHA-256 verification
 requirements.txt Runtime dependency
 build-requirements.txt Pinned build dependency
 run.bat         Easy source launch
@@ -149,7 +163,7 @@ Instagram's Terms of Service, copyright, and the rights of content creators.
 
 The release workflow can add an Authenticode signature when the repository secrets
 `WINDOWS_CERTIFICATE_BASE64` and `WINDOWS_CERTIFICATE_PASSWORD` are configured. Without
-those secrets, the executable remains unsigned.
+those secrets, the application and updater executables remain unsigned.
 
 ---
 
@@ -174,9 +188,10 @@ YouTube & Instagram Downloader — небольшое нативное прил�
 Откройте страницу [Latest release](https://github.com/youngvitaly/yt-downloader/releases/latest)
 и скачайте `YouTubeDownloader-windows-x64.zip`.
 
-В portable-архив входят `YouTubeDownloader.exe`, папка поддержки и `ffmpeg.exe`. Python,
-Tkinter, `yt-dlp` и Instaloader уже находятся внутри portable-папки, поэтому пользователю
-не нужно устанавливать Python. Не отделяйте `.exe` и папку `_internal`.
+В portable-архив входят `YouTubeDownloader.exe`, `YouTubeDownloaderUpdater.exe`, папка
+поддержки и `ffmpeg.exe`. Python, Tkinter, `yt-dlp` и Instaloader уже находятся внутри
+portable-папки, поэтому пользователю не нужно устанавливать Python. Не отделяйте `.exe`,
+автообновлятор и папку `_internal`.
 
 ### Возможности
 
@@ -195,7 +210,9 @@ Tkinter, `yt-dlp` и Instaloader уже находятся внутри portable
 - вставка кнопкой, `Ctrl+V` или `Shift+Insert`, в том числе при русской раскладке;
 - сохранение настроек в `settings.json`;
 - корректная остановка загрузки при закрытии окна;
-- пользовательская иконка встроена в `.exe` и используется самим окном.
+- пользовательская иконка встроена в `.exe` и используется самим окном;
+- проверка обновлений при запуске и из настроек через отдельный процесс автообновления;
+- проверка SHA-256 архива, сохранение пользовательских файлов и перезапуск новой версии.
 
 Приложение обрабатывает одну ссылку за раз. Профиль Instagram может содержать несколько
 публикаций — в этом случае fallback Instaloader скачает медиа, доступное авторизованному
@@ -204,21 +221,31 @@ Tkinter, `yt-dlp` и Instaloader уже находятся внутри portable
 ### Быстрый запуск `.exe`
 
 1. Скачайте и распакуйте `YouTubeDownloader-windows-x64.zip`.
-2. Оставьте `YouTubeDownloader.exe`, `_internal` и `ffmpeg.exe` в одной папке.
+2. Оставьте `YouTubeDownloader.exe`, `YouTubeDownloaderUpdater.exe`, `_internal` и
+   `ffmpeg.exe` в одной папке.
 3. Запустите `YouTubeDownloader.exe` двойным кликом.
 4. Вставьте ссылку на YouTube, Shorts или Instagram, выберите режим и
    качество, нажмите **Download**.
 5. Для приватного Instagram-контента или stories откройте **Настройки → Аккаунт Instagram**,
    войдите, при необходимости введите код 2FA и вставьте прямую ссылку на медиа.
 
+Приложение проверяет GitHub Releases в фоне при запуске. Если найдена новая версия, оно
+спросит подтверждение, после чего отдельный `YouTubeDownloaderUpdater.exe` скачает новый
+ZIP, проверит `SHA256SUMS.txt`, дождётся закрытия приложения, заменит файлы программы,
+сохранит `settings.json` и `instagram.session`, а затем запустит новую версию. Проверку
+также можно запустить вручную в разделе **Настройки → Обновления**.
+
 Релизы собираются автоматически через GitHub Actions после публикации тега версии,
-например `v1.0.0`.
+например `v1.0.0`. Перед новым тегом обновляйте `APP_VERSION` в `app.py` и сохраняйте
+соответствие тега версии; workflow проверяет это автоматически. В описании новых релизов
+и в `START-HERE.txt` нужно продолжать указывать наличие автообновлятора.
 
 Структура portable-папки:
 
 ```text
 release/
 ├── YouTubeDownloader.exe
+├── YouTubeDownloaderUpdater.exe
 ├── _internal/
 └── ffmpeg.exe
 ```
@@ -276,6 +303,7 @@ build.bat
 
 ```text
 app.py          Windows-интерфейс, вход, yt-dlp и fallback Instagram
+updater.py      Отдельный автообновлятор и проверка SHA-256
 requirements.txt Зависимость приложения
 build-requirements.txt Фиксированные зависимости сборки
 run.bat         Простой запуск из исходников
@@ -291,4 +319,4 @@ icon.ico        Иконка Windows в нескольких размерах
 
 Workflow релиза умеет добавлять Authenticode-подпись, если в настройках репозитория
 заданы секреты `WINDOWS_CERTIFICATE_BASE64` и `WINDOWS_CERTIFICATE_PASSWORD`. Без этих
-секретов `.exe` остаётся неподписанным.
+секретов приложение и автообновлятор остаются неподписанными.

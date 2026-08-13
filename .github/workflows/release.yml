@@ -29,6 +29,19 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r build-requirements.txt
 
+      - name: Verify release version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $source = Get-Content app.py -Raw
+          if ($source -notmatch 'APP_VERSION\s*=\s*"([^"]+)"') {
+            throw "APP_VERSION was not found in app.py"
+          }
+          $expectedTag = "v$($matches[1])"
+          if ($expectedTag -ne "${{ github.ref_name }}") {
+            throw "Tag ${{ github.ref_name }} does not match app.py version $expectedTag"
+          }
+
       - name: Download FFmpeg
         shell: pwsh
         env:
@@ -66,6 +79,18 @@ jobs:
             --collect-all instaloader `
             app.py
 
+          python -m PyInstaller `
+            --noconfirm `
+            --clean `
+            --onefile `
+            --windowed `
+            --name YouTubeDownloaderUpdater `
+            updater.py
+
+          Copy-Item `
+            dist\YouTubeDownloaderUpdater.exe `
+            dist\YouTubeDownloader\YouTubeDownloaderUpdater.exe `
+            -Force
           Copy-Item dist\YouTubeDownloader\* release\ -Recurse -Force
           Copy-Item README.md release\README.md
           Copy-Item icon.png release\icon.png
@@ -78,6 +103,8 @@ jobs:
           ffmpeg.exe is included for video merging and audio conversion.
           Instagram media uses yt-dlp first, with Instaloader as a fallback. Optional
           Instagram login supports account-accessible private media and stories.
+          YouTubeDownloaderUpdater.exe checks GitHub Releases, verifies SHA-256, preserves
+          settings.json and instagram.session, then restarts the updated application.
           "@ | Set-Content -Path release\START-HERE.txt -Encoding UTF8
 
       - name: Sign executable (optional)
@@ -115,7 +142,17 @@ jobs:
               /td SHA256 `
               release\YouTubeDownloader.exe
             if ($LASTEXITCODE -ne 0) {
-              throw "Authenticode signing failed"
+              throw "Authenticode signing failed for YouTubeDownloader.exe"
+            }
+            & $signTool.FullName sign `
+              /fd SHA256 `
+              /f $certificatePath `
+              /p $env:WINDOWS_CERTIFICATE_PASSWORD `
+              /tr "http://timestamp.digicert.com" `
+              /td SHA256 `
+              release\YouTubeDownloaderUpdater.exe
+            if ($LASTEXITCODE -ne 0) {
+              throw "Authenticode signing failed for YouTubeDownloaderUpdater.exe"
             }
             Remove-Item $certificatePath -Force
           }
@@ -134,10 +171,12 @@ jobs:
         run: |
           $zipHash = (Get-FileHash YouTubeDownloader-windows-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
           $exeHash = (Get-FileHash release\YouTubeDownloader.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          $updaterHash = (Get-FileHash release\YouTubeDownloaderUpdater.exe -Algorithm SHA256).Hash.ToLowerInvariant()
           $ffmpegHash = (Get-FileHash release\ffmpeg.exe -Algorithm SHA256).Hash.ToLowerInvariant()
           @(
             "$zipHash  YouTubeDownloader-windows-x64.zip"
             "$exeHash  YouTubeDownloader.exe (inside ZIP)"
+            "$updaterHash  YouTubeDownloaderUpdater.exe (inside ZIP)"
             "$ffmpegHash  ffmpeg.exe (inside ZIP)"
           ) | Set-Content -Path SHA256SUMS.txt -Encoding ASCII
 

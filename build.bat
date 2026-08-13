@@ -47,6 +47,28 @@ if errorlevel 1 (
     exit /b 1
 )
 
+echo Building automatic updater...
+".venv\Scripts\python.exe" -m PyInstaller ^
+    --noconfirm ^
+    --clean ^
+    --onefile ^
+    --windowed ^
+    --name YouTubeDownloaderUpdater ^
+    updater.py
+
+if errorlevel 1 (
+    echo Updater build failed.
+    pause
+    exit /b 1
+)
+
+copy /Y "dist\YouTubeDownloaderUpdater.exe" "dist\YouTubeDownloader\YouTubeDownloaderUpdater.exe" >nul
+if errorlevel 1 (
+    echo Could not place the updater beside the application.
+    pause
+    exit /b 1
+)
+
 echo.
 echo Done: dist\YouTubeDownloader\YouTubeDownloader.exe
 echo Keep the complete YouTubeDownloader folder together.
