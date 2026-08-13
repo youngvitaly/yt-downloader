@@ -9,6 +9,7 @@ import subprocess
 import sys
 import threading
 import time
+from datetime import datetime
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext, ttk
@@ -27,7 +28,7 @@ except ImportError:
     instaloader = None
 
 
-APP_VERSION = "1.3.3"
+APP_VERSION = "1.3.4"
 APP_TITLE = "YouTube & Instagram Downloader"
 GITHUB_RELEASE_API = (
     "https://api.github.com/repos/youngvitaly/yt-downloader/releases/latest"
@@ -91,7 +92,7 @@ TEXT = {
         "processing": "File downloaded, processing…",
         "done": "Done",
         "saved": "The file was saved to the selected folder.",
-        "download_complete": "Download complete.",
+        "download_complete": "Download complete — media saved to the selected folder.",
         "canceling": "Canceling…",
         "cancelled": "Cancelled",
         "download_cancelled": "Download cancelled.",
@@ -147,10 +148,12 @@ TEXT = {
         "yt_dlp_exit": "yt-dlp returned an error code: {code}.",
         "instagram_detected": "Instagram link detected.",
         "instagram_quality_note": "Instagram uses the best available media quality.",
-        "instagram_ytdlp_primary": "Trying yt-dlp for Instagram first.",
-        "instagram_fallback_log": "yt-dlp failed: {text}",
-        "instagram_fallback": "yt-dlp could not download Instagram media. "
-        "Trying the Instaloader fallback…",
+        "instagram_ytdlp_primary": "Instagram: trying yt-dlp…",
+        "instagram_fallback_log": "Instagram: yt-dlp did not handle this link. "
+        "Switching to Instaloader.",
+        "instagram_fallback": "Instagram: downloading with Instaloader…",
+        "instagram_ytdlp_success": "Instagram: yt-dlp downloaded the media.",
+        "instagram_fallback_success": "Instagram: Instaloader saved media to the selected folder.",
         "instagram_fallback_unavailable": "yt-dlp could not download this Instagram link:\n\n"
         "{primary}\n\nInstaloader is not installed. Run run.bat to install all dependencies.",
         "instagram_fallback_error": "Instagram download failed.\n\n"
@@ -204,7 +207,7 @@ TEXT = {
         "processing": "Файл скачан, выполняю обработку…",
         "done": "Готово",
         "saved": "Файл сохранён в выбранную папку.",
-        "download_complete": "Скачивание завершено.",
+        "download_complete": "Скачивание завершено — файлы сохранены в выбранную папку.",
         "canceling": "Отмена…",
         "cancelled": "Отменено",
         "download_cancelled": "Скачивание отменено.",
@@ -260,10 +263,12 @@ TEXT = {
         "yt_dlp_exit": "yt-dlp вернул код ошибки: {code}.",
         "instagram_detected": "Обнаружена ссылка Instagram.",
         "instagram_quality_note": "Для Instagram используется лучшее доступное качество.",
-        "instagram_ytdlp_primary": "Сначала пробую скачать Instagram через yt-dlp.",
-        "instagram_fallback_log": "yt-dlp завершился с ошибкой: {text}",
-        "instagram_fallback": "yt-dlp не смог скачать медиа Instagram. "
-        "Пробую запасной вариант Instaloader…",
+        "instagram_ytdlp_primary": "Instagram: пробую скачать через yt-dlp…",
+        "instagram_fallback_log": "Instagram: yt-dlp не обработал эту ссылку. "
+        "Переключаюсь на Instaloader.",
+        "instagram_fallback": "Instagram: скачиваю через Instaloader…",
+        "instagram_ytdlp_success": "Instagram: медиа скачано через yt-dlp.",
+        "instagram_fallback_success": "Instagram: Instaloader сохранил медиа в выбранную папку.",
         "instagram_fallback_unavailable": "yt-dlp не смог скачать эту ссылку Instagram:\n\n"
         "{primary}\n\nInstaloader не установлен. Запустите run.bat для установки зависимостей.",
         "instagram_fallback_error": "Не удалось скачать Instagram.\n\n"
@@ -451,6 +456,17 @@ def parse_instagram_url(url: str) -> tuple[str, str] | None:
     if section in INSTAGRAM_RESERVED_PATHS:
         return None
     return "profile", parts[0]
+
+
+def display_url_for_log(url: str) -> str:
+    """Remove tracking parameters from Instagram URLs shown in the activity log."""
+    if not is_instagram_url(url):
+        return url
+    try:
+        parsed = urlparse(url)
+        return parsed._replace(query="", fragment="").geturl()
+    except ValueError:
+        return url
 
 
 class UpdateError(RuntimeError):
@@ -1815,7 +1831,12 @@ class DownloaderApp:
         self.details_var.set("")
         self._set_busy(True)
         self.status_var.set(self.t("starting"))
-        self._log(self.t("downloading_log", url=url))
+        self._log(
+            self.t(
+                "downloading_log",
+                url=display_url_for_log(url),
+            )
+        )
         if is_instagram_url(url):
             self._log(self.t("instagram_ytdlp_primary"))
 
@@ -1871,6 +1892,7 @@ class DownloaderApp:
         self,
         output_dir: Path | None = None,
         mode: str = "video",
+        download_prefix: str | None = None,
     ) -> Any:
         if instaloader is None:
             raise RuntimeError(self.t("instagram_dependency_error"))
@@ -1892,10 +1914,11 @@ class DownloaderApp:
             "sanitize_paths": True,
         }
         if output_dir is not None:
+            prefix = download_prefix or datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             options.update(
                 {
-                    "dirname_pattern": str(output_dir / "{target}"),
-                    "filename_pattern": "{date_utc}_UTC",
+                    "dirname_pattern": str(output_dir),
+                    "filename_pattern": f"{prefix}_{{target}}_{{date_utc}}_UTC",
                 }
             )
         return instaloader.Instaloader(**options)
@@ -2024,21 +2047,14 @@ class DownloaderApp:
                     progress_hook,
                     http_headers,
                 )
+                self.events.put(("log", self.t("instagram_ytdlp_success")))
                 return
             except DownloadCancelled:
                 raise
             except Exception as error:
                 primary_error = error
-                self.events.put(
-                    (
-                        "log",
-                        self.t(
-                            "instagram_fallback_log",
-                            text=self._friendly_error(error),
-                        ),
-                    )
-                )
 
+        self.events.put(("log", self.t("instagram_fallback_log")))
         if self.cancel_event.is_set():
             raise DownloadCancelled()
         if instaloader is None:
@@ -2062,6 +2078,7 @@ class DownloaderApp:
                     fallback=self._friendly_error(fallback_error),
                 )
             ) from fallback_error
+        self.events.put(("log", self.t("instagram_fallback_success")))
 
     def _download_with_instaloader(
         self,
@@ -2084,8 +2101,9 @@ class DownloaderApp:
             raise RuntimeError(self.t("instagram_invalid"))
 
         target = re.sub(r"[^A-Za-z0-9._-]+", "_", identifier).strip("._") or "instagram"
-        media_root = output_dir / target
-        loader = self._create_instaloader(output_dir, mode)
+        download_prefix = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        existing_files = self._instagram_media_files(output_dir)
+        loader = self._create_instaloader(output_dir, mode, download_prefix)
         self._load_instagram_session(loader)
 
         self._raise_if_cancelled()
@@ -2110,20 +2128,50 @@ class DownloaderApp:
             )
 
         self._raise_if_cancelled()
+        downloaded_files = self._instagram_media_files(output_dir) - existing_files
         if target_kind != "story" and post_count == 0:
             raise RuntimeError(self.t("instagram_no_media"))
-        if target_kind == "story" and not any(path.is_file() for path in media_root.rglob("*")):
-            raise RuntimeError(self.t("instagram_no_media"))
+        if target_kind == "story" and not downloaded_files:
+            error_key = "instagram_no_audio" if mode == "audio" else "instagram_no_media"
+            raise RuntimeError(self.t(error_key))
 
         if mode == "audio":
-            self._convert_instagram_audio(media_root, ffmpeg)
+            self._convert_instagram_audio(
+                output_dir,
+                ffmpeg,
+                downloaded_files,
+            )
 
-    def _convert_instagram_audio(self, media_root: Path, ffmpeg: str) -> None:
-        media_files = sorted(
+    def _instagram_media_files(self, root: Path) -> set[Path]:
+        if not root.is_dir():
+            return set()
+        extensions = {".jpg", ".jpeg", ".png", ".mp4", ".webm", ".mkv", ".mov"}
+        return {
             path
-            for path in media_root.rglob("*")
-            if path.is_file() and path.suffix.lower() in {".mp4", ".webm", ".mkv", ".mov"}
-        )
+            for path in root.rglob("*")
+            if path.is_file() and path.suffix.lower() in extensions
+        }
+
+    def _convert_instagram_audio(
+        self,
+        media_root: Path,
+        ffmpeg: str,
+        downloaded_files: set[Path] | None = None,
+    ) -> None:
+        if downloaded_files is None:
+            media_files = sorted(
+                path
+                for path in media_root.rglob("*")
+                if path.is_file()
+                and path.suffix.lower() in {".mp4", ".webm", ".mkv", ".mov"}
+            )
+        else:
+            media_files = sorted(
+                path
+                for path in downloaded_files
+                if path.is_file()
+                and path.suffix.lower() in {".mp4", ".webm", ".mkv", ".mov"}
+            )
         if not media_files:
             raise RuntimeError(self.t("instagram_no_audio"))
 

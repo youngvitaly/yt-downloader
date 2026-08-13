@@ -40,6 +40,7 @@ contents together.
 - Public and account-accessible Instagram photo posts, Reels, carousels, profiles, and stories.
 - Optional Instagram login with local session reuse and 2FA support.
 - Automatic Instagram fallback: `yt-dlp` first, Instaloader second.
+- Instagram fallback media is saved directly to the selected folder with download timestamps.
 - Video mode with available resolutions from 360p up to 4K when provided by the source.
 - Audio mode with quality selection and MP3, M4A, or Opus output.
 - Optional format inspection before downloading.
@@ -199,6 +200,7 @@ portable-папки, поэтому пользователю не нужно у�
 - публичные и доступные аккаунту фото-посты, Reels, карусели, stories и профили Instagram;
 - необязательный вход в Instagram с повторным использованием локальной сессии и поддержкой 2FA;
 - автоматический fallback для Instagram: сначала `yt-dlp`, затем Instaloader;
+- медиа Instagram сохраняется прямо в выбранную папку с датой и временем скачивания в имени;
 - видео от 360p до 4K, если такое качество доступно у источника;
 - аудио в MP3, M4A или Opus;
 - предварительный просмотр доступных качеств;
