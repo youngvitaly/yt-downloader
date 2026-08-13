@@ -5,20 +5,28 @@ import json
 import queue
 import re
 import shutil
+import subprocess
 import sys
 import threading
+import time
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 from typing import Any
+from urllib.parse import unquote, urlparse
 
 try:
     import yt_dlp
 except ImportError:
     yt_dlp = None
 
+try:
+    import instaloader
+except ImportError:
+    instaloader = None
 
-APP_TITLE = "YouTube Downloader"
+
+APP_TITLE = "YouTube & Instagram Downloader"
 DEFAULT_OUTPUT_DIR = Path.home() / "Downloads"
 DEFAULT_SETTINGS = {
     "language": "en",
@@ -37,7 +45,7 @@ THEME_LABELS = {
 
 TEXT = {
     "en": {
-        "heading": "Video and audio downloader",
+        "heading": "Video, audio and social media downloader",
         "url": "Link:",
         "paste": "Paste",
         "mode": "Mode:",
@@ -62,7 +70,7 @@ TEXT = {
         "untitled": "Untitled",
         "best_available": "Best available",
         "up_to": "Up to",
-        "paste_video": "Paste a video link.",
+        "paste_video": "Paste a YouTube or Instagram link.",
         "clipboard_empty": "The clipboard does not contain text.\n"
         "Copy a link in the browser and press “Paste” again.",
         "clipboard_no_link": "The clipboard does not contain a link.",
@@ -94,9 +102,25 @@ TEXT = {
         "not_bot": "YouTube asked to confirm that you are not a bot. "
         "Try updating yt-dlp or using browser cookies.\n\n{text}",
         "ffmpeg_processing": "FFmpeg could not process the file.\n\n{text}",
+        "instagram_detected": "Instagram link detected.",
+        "instagram_quality_note": "Instagram uses the best available media quality.",
+        "instagram_ytdlp_primary": "Trying yt-dlp for Instagram first.",
+        "instagram_fallback_log": "yt-dlp failed: {text}",
+        "instagram_fallback": "yt-dlp could not download Instagram media. "
+        "Trying the Instaloader fallback…",
+        "instagram_fallback_unavailable": "yt-dlp could not download this Instagram link:\n\n"
+        "{primary}\n\nInstaloader is not installed. Run run.bat to install all dependencies.",
+        "instagram_fallback_error": "Instagram download failed.\n\n"
+        "yt-dlp: {primary}\n\nInstaloader: {fallback}",
+        "instagram_invalid": "This Instagram link is not a supported public post, profile, or story URL.",
+        "instagram_no_media": "No public Instagram media was found.",
+        "instagram_no_audio": "The Instagram content does not contain a video or audio track.",
+        "instagram_processing": "Converting Instagram video to audio…",
+        "instagram_login_required": "Instagram requires a logged-in session for this content. "
+        "Public-only mode supports public posts, Reels, carousels, and profiles.",
     },
     "ru": {
-        "heading": "Загрузка видео и аудио",
+        "heading": "Загрузка видео, аудио и соцмедиа",
         "url": "Ссылка:",
         "paste": "Вставить",
         "mode": "Режим:",
@@ -121,7 +145,7 @@ TEXT = {
         "untitled": "Без названия",
         "best_available": "Лучшее доступное",
         "up_to": "До",
-        "paste_video": "Вставьте ссылку на видео.",
+        "paste_video": "Вставьте ссылку на YouTube или Instagram.",
         "clipboard_empty": "В буфере обмена нет текста.\n"
         "Скопируйте ссылку в браузере и нажмите «Вставить» ещё раз.",
         "clipboard_no_link": "В буфере обмена нет ссылки.",
@@ -153,6 +177,22 @@ TEXT = {
         "not_bot": "YouTube запросил подтверждение, что вы не бот. "
         "Попробуйте обновить yt-dlp или использовать cookies браузера.\n\n{text}",
         "ffmpeg_processing": "Не удалось обработать файл через FFmpeg.\n\n{text}",
+        "instagram_detected": "Обнаружена ссылка Instagram.",
+        "instagram_quality_note": "Для Instagram используется лучшее доступное качество.",
+        "instagram_ytdlp_primary": "Сначала пробую скачать Instagram через yt-dlp.",
+        "instagram_fallback_log": "yt-dlp завершился с ошибкой: {text}",
+        "instagram_fallback": "yt-dlp не смог скачать медиа Instagram. "
+        "Пробую запасной вариант Instaloader…",
+        "instagram_fallback_unavailable": "yt-dlp не смог скачать эту ссылку Instagram:\n\n"
+        "{primary}\n\nInstaloader не установлен. Запустите run.bat для установки зависимостей.",
+        "instagram_fallback_error": "Не удалось скачать Instagram.\n\n"
+        "yt-dlp: {primary}\n\nInstaloader: {fallback}",
+        "instagram_invalid": "Это не поддерживаемая публичная ссылка Instagram на пост, профиль или story.",
+        "instagram_no_media": "Публичное медиа Instagram не найдено.",
+        "instagram_no_audio": "В контенте Instagram нет видео или аудиодорожки.",
+        "instagram_processing": "Конвертирую видео Instagram в аудио…",
+        "instagram_login_required": "Для этого контента Instagram требует авторизованную сессию. "
+        "В режиме только публичного контента доступны посты, Reels, карусели и профили.",
     },
 }
 
@@ -179,6 +219,19 @@ AUDIO_FORMATS = [
     ("M4A", "m4a"),
     ("Opus", "opus"),
 ]
+
+INSTAGRAM_RESERVED_PATHS = {
+    "accounts",
+    "direct",
+    "directory",
+    "emails",
+    "explore",
+    "legal",
+    "reels",
+    "session",
+    "settings",
+    "about",
+}
 
 
 def app_directory() -> Path:
@@ -275,6 +328,40 @@ def safe_float(value: Any) -> float | None:
         return float(value) if value is not None else None
     except (TypeError, ValueError):
         return None
+
+
+def is_instagram_url(url: str) -> bool:
+    try:
+        hostname = (urlparse(url).hostname or "").lower().rstrip(".")
+    except ValueError:
+        return False
+    return hostname == "instagram.com" or hostname.endswith(".instagram.com")
+
+
+def parse_instagram_url(url: str) -> tuple[str, str] | None:
+    if not is_instagram_url(url):
+        return None
+
+    try:
+        parts = [
+            unquote(part).strip()
+            for part in urlparse(url).path.split("/")
+            if part.strip()
+        ]
+    except ValueError:
+        return None
+
+    if not parts:
+        return None
+
+    section = parts[0].lower()
+    if section in {"p", "reel", "tv"} and len(parts) > 1:
+        return "post", parts[1]
+    if section == "stories":
+        return "story", parts[1] if len(parts) > 1 else ""
+    if section in INSTAGRAM_RESERVED_PATHS:
+        return None
+    return "profile", parts[0]
 
 
 class DownloaderApp:
@@ -815,8 +902,8 @@ class DownloaderApp:
         else:
             os.system(f'xdg-open "{output_dir}"')
 
-    def _check_dependency(self) -> bool:
-        if yt_dlp is None:
+    def _check_dependency(self, url: str = "") -> bool:
+        if yt_dlp is None and not (is_instagram_url(url) and instaloader is not None):
             messagebox.showerror(
                 APP_TITLE,
                 self.t("dependency_error"),
@@ -828,18 +915,25 @@ class DownloaderApp:
         return self.url_var.get().strip()
 
     def inspect_url(self) -> None:
-        if not self._check_dependency():
-            return
-
         url = self._get_url()
         if not url:
             messagebox.showwarning(APP_TITLE, self.t("paste_video"))
+            return
+        if not self._check_dependency(url):
             return
 
         self._set_busy(True, inspecting=True)
         self.status_var.set(self.t("fetching"))
         self.details_var.set("")
         self._log(self.t("checking", url=url))
+        if is_instagram_url(url):
+            self._set_instagram_quality_options()
+            self.status_var.set(self.t("ready_download"))
+            self.details_var.set(self.t("instagram_quality_note"))
+            self._log(self.t("instagram_detected"))
+            self._set_busy(False)
+            return
+
         self.worker = threading.Thread(
             target=self._inspect_worker,
             args=(url,),
@@ -861,6 +955,11 @@ class DownloaderApp:
             self.events.put(("inspection_done", info))
         except Exception as error:
             self.events.put(("error", self._friendly_error(error)))
+
+    def _set_instagram_quality_options(self) -> None:
+        self.video_options = [("best", "bestvideo+bestaudio/best")]
+        self.audio_options = [("best", "bestaudio/best")]
+        self._set_quality_options()
 
     def _apply_inspection(self, info: dict[str, Any]) -> None:
         title = info.get("title") or self.t("untitled")
@@ -916,12 +1015,11 @@ class DownloaderApp:
         self.status_var.set(self.t("ready_download"))
 
     def start_download(self) -> None:
-        if not self._check_dependency():
-            return
-
         url = self._get_url()
         if not url:
             messagebox.showwarning(APP_TITLE, self.t("paste_video"))
+            return
+        if not self._check_dependency(url):
             return
 
         output_dir = Path(self.output_dir_var.get()).expanduser()
@@ -940,7 +1038,11 @@ class DownloaderApp:
             return
 
         mode = self.mode_var.get()
-        if mode == "video":
+        if is_instagram_url(url) and mode == "video":
+            selector = "bestvideo+bestaudio/best"
+        elif is_instagram_url(url):
+            selector = "bestaudio/best"
+        elif mode == "video":
             selector = self.quality_selectors.get(
                 self.quality_var.get(),
                 "bestvideo+bestaudio/best",
@@ -957,6 +1059,8 @@ class DownloaderApp:
         self._set_busy(True)
         self.status_var.set(self.t("starting"))
         self._log(self.t("downloading_log", url=url))
+        if is_instagram_url(url):
+            self._log(self.t("instagram_ytdlp_primary"))
 
         args = (url, output_dir, mode, selector, ffmpeg)
         self.worker = threading.Thread(target=self._download_worker, args=args, daemon=True)
@@ -974,6 +1078,49 @@ class DownloaderApp:
             if self.cancel_event.is_set():
                 raise DownloadCancelled()
             self.events.put(("progress", data))
+
+        try:
+            if is_instagram_url(url):
+                self._download_instagram(
+                    url,
+                    output_dir,
+                    mode,
+                    selector,
+                    ffmpeg,
+                    progress_hook,
+                )
+            else:
+                self._download_with_yt_dlp(
+                    url,
+                    output_dir,
+                    mode,
+                    selector,
+                    ffmpeg,
+                    progress_hook,
+                )
+            if self.cancel_event.is_set():
+                self.events.put(("cancelled", None))
+            else:
+                self.events.put(("done", None))
+        except DownloadCancelled:
+            self.events.put(("cancelled", None))
+        except Exception as error:
+            if self.cancel_event.is_set():
+                self.events.put(("cancelled", None))
+            else:
+                self.events.put(("error", self._friendly_error(error)))
+
+    def _download_with_yt_dlp(
+        self,
+        url: str,
+        output_dir: Path,
+        mode: str,
+        selector: str,
+        ffmpeg: str,
+        progress_hook: Any,
+    ) -> None:
+        if yt_dlp is None:
+            raise RuntimeError(self.t("dependency_error"))
 
         options: dict[str, Any] = {
             "format": selector,
@@ -1003,20 +1150,201 @@ class DownloaderApp:
                 }
             ]
 
+        with yt_dlp.YoutubeDL(options) as downloader:
+            downloader.download([url])
+
+    def _download_instagram(
+        self,
+        url: str,
+        output_dir: Path,
+        mode: str,
+        selector: str,
+        ffmpeg: str,
+        progress_hook: Any,
+    ) -> None:
+        primary_error: Exception
+        if yt_dlp is None:
+            primary_error = RuntimeError(self.t("dependency_error"))
+        else:
+            try:
+                self._download_with_yt_dlp(
+                    url,
+                    output_dir,
+                    mode,
+                    selector,
+                    ffmpeg,
+                    progress_hook,
+                )
+                return
+            except DownloadCancelled:
+                raise
+            except Exception as error:
+                primary_error = error
+                self.events.put(
+                    (
+                        "log",
+                        self.t(
+                            "instagram_fallback_log",
+                            text=self._friendly_error(error),
+                        ),
+                    )
+                )
+
+        if self.cancel_event.is_set():
+            raise DownloadCancelled()
+        if instaloader is None:
+            raise RuntimeError(
+                self.t(
+                    "instagram_fallback_unavailable",
+                    primary=self._friendly_error(primary_error),
+                )
+            )
+
+        self.events.put(("status", self.t("instagram_fallback")))
         try:
-            with yt_dlp.YoutubeDL(options) as downloader:
-                downloader.download([url])
-            if self.cancel_event.is_set():
-                self.events.put(("cancelled", None))
-            else:
-                self.events.put(("done", None))
+            self._download_with_instaloader(url, output_dir, mode, ffmpeg)
         except DownloadCancelled:
-            self.events.put(("cancelled", None))
-        except Exception as error:
-            if self.cancel_event.is_set():
-                self.events.put(("cancelled", None))
-            else:
-                self.events.put(("error", self._friendly_error(error)))
+            raise
+        except Exception as fallback_error:
+            raise RuntimeError(
+                self.t(
+                    "instagram_fallback_error",
+                    primary=self._friendly_error(primary_error),
+                    fallback=self._friendly_error(fallback_error),
+                )
+            ) from fallback_error
+
+    def _download_with_instaloader(
+        self,
+        url: str,
+        output_dir: Path,
+        mode: str,
+        ffmpeg: str,
+    ) -> None:
+        if instaloader is None:
+            raise RuntimeError(self.t("instagram_fallback_unavailable", primary=""))
+
+        target_info = parse_instagram_url(url)
+        if not target_info:
+            raise RuntimeError(self.t("instagram_invalid"))
+
+        target_kind, identifier = target_info
+        if target_kind == "story" and not identifier:
+            raise RuntimeError(self.t("instagram_invalid"))
+
+        target = re.sub(r"[^A-Za-z0-9._-]+", "_", identifier).strip("._") or "instagram"
+        media_root = output_dir / target
+        loader = instaloader.Instaloader(
+            sleep=False,
+            quiet=True,
+            dirname_pattern=str(output_dir / "{target}"),
+            filename_pattern="{date_utc}_UTC",
+            download_pictures=mode == "video",
+            download_videos=True,
+            download_video_thumbnails=False,
+            download_geotags=False,
+            download_comments=False,
+            save_metadata=False,
+            compress_json=False,
+            post_metadata_txt_pattern="",
+            storyitem_metadata_txt_pattern="",
+            max_connection_attempts=3,
+            request_timeout=15,
+            sanitize_paths=True,
+        )
+
+        self._raise_if_cancelled()
+        post_count = 0
+        if target_kind == "post":
+            post = instaloader.Post.from_shortcode(loader.context, identifier)
+            self._raise_if_cancelled()
+            loader.download_post(post, target=target)
+            post_count = 1
+        elif target_kind == "profile":
+            profile = instaloader.Profile.from_username(loader.context, identifier)
+            for post in profile.get_posts():
+                self._raise_if_cancelled()
+                loader.download_post(post, target=target)
+                post_count += 1
+        else:
+            profile = instaloader.Profile.from_username(loader.context, identifier)
+            loader.download_stories(
+                userids=[profile],
+                filename_target=target,
+                storyitem_filter=lambda _item: not self.cancel_event.is_set(),
+            )
+
+        self._raise_if_cancelled()
+        if target_kind != "story" and post_count == 0:
+            raise RuntimeError(self.t("instagram_no_media"))
+        if target_kind == "story" and not any(path.is_file() for path in media_root.rglob("*")):
+            raise RuntimeError(self.t("instagram_no_media"))
+
+        if mode == "audio":
+            self._convert_instagram_audio(media_root, ffmpeg)
+
+    def _convert_instagram_audio(self, media_root: Path, ffmpeg: str) -> None:
+        media_files = sorted(
+            path
+            for path in media_root.rglob("*")
+            if path.is_file() and path.suffix.lower() in {".mp4", ".webm", ".mkv", ".mov"}
+        )
+        if not media_files:
+            raise RuntimeError(self.t("instagram_no_audio"))
+
+        audio_format = dict(AUDIO_FORMATS).get(self.audio_format_var.get(), "mp3")
+        audio_quality = self._audio_postprocess_quality()
+        bitrate = audio_quality if audio_quality != "0" else "192"
+        codec = {
+            "mp3": "libmp3lame",
+            "m4a": "aac",
+            "opus": "libopus",
+        }.get(audio_format, "libmp3lame")
+
+        for source in media_files:
+            self._raise_if_cancelled()
+            destination = source.with_suffix(f".{audio_format}")
+            self.events.put(("status", self.t("instagram_processing")))
+            process = subprocess.Popen(
+                [
+                    ffmpeg,
+                    "-y",
+                    "-i",
+                    str(source),
+                    "-vn",
+                    "-codec:a",
+                    codec,
+                    "-b:a",
+                    f"{bitrate}k",
+                    str(destination),
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+            while process.poll() is None:
+                if self.cancel_event.is_set():
+                    process.terminate()
+                    try:
+                        process.wait(timeout=3)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                    raise DownloadCancelled()
+                time.sleep(0.1)
+
+            _stdout, stderr = process.communicate()
+            if process.returncode != 0:
+                details = (stderr or "").strip()
+                raise RuntimeError(details or self.t("ffmpeg_processing", text=""))
+            try:
+                source.unlink()
+            except OSError:
+                pass
+
+    def _raise_if_cancelled(self) -> None:
+        if self.cancel_event.is_set():
+            raise DownloadCancelled()
 
     def _audio_postprocess_quality(self) -> str:
         selected = self.quality_var.get()
@@ -1061,6 +1389,13 @@ class DownloaderApp:
                 if event == "progress":
                     if not self.is_closing:
                         self._update_progress(payload)
+                elif event == "status":
+                    if not self.is_closing:
+                        self.status_var.set(str(payload))
+                        self.details_var.set("")
+                elif event == "log":
+                    if not self.is_closing:
+                        self._log(str(payload))
                 elif event == "inspection_done":
                     if not self.is_closing:
                         self._apply_inspection(payload)
@@ -1136,6 +1471,9 @@ class DownloaderApp:
     def _friendly_error(self, error: Exception) -> str:
         text = str(error).strip()
         text = re.sub(r"^\s*ERROR:\s*", "", text, flags=re.IGNORECASE)
+        lower_text = text.lower()
+        if "loginrequiredexception" in lower_text or "login required" in lower_text:
+            return self.t("instagram_login_required")
         if "Sign in to confirm" in text or "not a bot" in text.lower():
             return self.t("not_bot", text=text)
         if "ffmpeg" in text.lower():

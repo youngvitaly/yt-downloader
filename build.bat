@@ -38,6 +38,7 @@ echo Building YouTubeDownloader.exe...
     --icon icon.ico ^
     --add-data "icon.ico;." ^
     --collect-all yt_dlp ^
+    --collect-all instaloader ^
     app.py
 
 if errorlevel 1 (

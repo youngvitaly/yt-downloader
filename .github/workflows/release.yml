@@ -58,6 +58,7 @@ jobs:
             --icon icon.ico `
             --add-data "icon.ico;." `
             --collect-all yt_dlp `
+            --collect-all instaloader `
             app.py
 
           Copy-Item dist\YouTubeDownloader.exe release\YouTubeDownloader.exe
@@ -70,6 +71,8 @@ jobs:
           Run YouTubeDownloader.exe.
           Python is already bundled into the executable.
           ffmpeg.exe is included for video merging and audio conversion.
+          Instagram public posts, Reels, carousels, and profiles use yt-dlp first,
+          with Instaloader as a fallback.
           "@ | Set-Content -Path release\START-HERE.txt -Encoding UTF8
 
           Compress-Archive `

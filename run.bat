@@ -20,10 +20,10 @@ if not exist ".venv\Scripts\python.exe" (
     )
 )
 
-echo Checking yt-dlp...
+echo Checking downloader dependencies...
 ".venv\Scripts\python.exe" -m pip install -q -r requirements.txt
 if errorlevel 1 (
-    echo Could not install yt-dlp. Check your internet connection.
+    echo Could not install downloader dependencies. Check your internet connection.
     pause
     exit /b 1
 )
