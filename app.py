@@ -28,7 +28,7 @@ except ImportError:
     instaloader = None
 
 
-APP_VERSION = "1.3.4"
+APP_VERSION = "1.3.5"
 APP_TITLE = "YouTube & Instagram Downloader"
 GITHUB_RELEASE_API = (
     "https://api.github.com/repos/youngvitaly/yt-downloader/releases/latest"
@@ -603,6 +603,7 @@ class DownloaderApp:
         self.update_in_progress = False
         self.cancel_event = threading.Event()
         self.current_title = ""
+        self.last_downloaded_file: Path | None = None
         self.is_closing = False
 
         self.url_var = tk.StringVar()
@@ -1646,12 +1647,25 @@ class DownloaderApp:
         )
         if selected:
             self.output_dir_var.set(selected)
+            self.last_downloaded_file = None
             self._save_settings()
 
     def open_output_dir(self) -> None:
         output_dir = Path(self.output_dir_var.get()).expanduser()
         output_dir.mkdir(parents=True, exist_ok=True)
+        selected_file = self.last_downloaded_file
+        if selected_file is not None and selected_file.is_file():
+            output_dir = selected_file.parent
         if sys.platform == "win32":
+            if selected_file is not None and selected_file.is_file():
+                try:
+                    subprocess.Popen(
+                        ["explorer.exe", f"/select,{selected_file.resolve()}"],
+                        close_fds=True,
+                    )
+                    return
+                except OSError:
+                    pass
             os.startfile(output_dir)  # type: ignore[attr-defined]
         elif sys.platform == "darwin":
             os.system(f'open "{output_dir}"')
@@ -1829,6 +1843,7 @@ class DownloaderApp:
         self.cancel_event.clear()
         self.progress_var.set(0)
         self.details_var.set("")
+        self.last_downloaded_file = None
         self._set_busy(True)
         self.status_var.set(self.t("starting"))
         self._log(
@@ -1844,6 +1859,40 @@ class DownloaderApp:
         self.worker = threading.Thread(target=self._download_worker, args=args, daemon=True)
         self.worker.start()
 
+    def _file_state(self, root: Path) -> dict[Path, tuple[int, int]]:
+        if not root.is_dir():
+            return {}
+        state: dict[Path, tuple[int, int]] = {}
+        for path in root.rglob("*"):
+            if not path.is_file():
+                continue
+            try:
+                stat = path.stat()
+            except OSError:
+                continue
+            state[path] = (stat.st_mtime_ns, stat.st_size)
+        return state
+
+    def _set_download_time(self, files: set[Path]) -> None:
+        downloaded_at = time.time()
+        for path in files:
+            try:
+                os.utime(path, (downloaded_at, downloaded_at))
+            except OSError:
+                pass
+
+    def _last_file(self, files: set[Path]) -> Path | None:
+        latest: tuple[int, int, str, Path] | None = None
+        for path in files:
+            try:
+                stat = path.stat()
+            except OSError:
+                continue
+            candidate = (stat.st_ctime_ns, stat.st_mtime_ns, str(path), path)
+            if latest is None or candidate[:3] > latest[:3]:
+                latest = candidate
+        return latest[3].resolve() if latest else None
+
     def _download_worker(
         self,
         url: str,
@@ -1852,6 +1901,8 @@ class DownloaderApp:
         selector: str,
         ffmpeg: str,
     ) -> None:
+        before_files = self._file_state(output_dir)
+
         def progress_hook(data: dict[str, Any]) -> None:
             if self.cancel_event.is_set():
                 raise DownloadCancelled()
@@ -1876,10 +1927,17 @@ class DownloaderApp:
                     ffmpeg,
                     progress_hook,
                 )
+            changed_files = {
+                path
+                for path, state in self._file_state(output_dir).items()
+                if before_files.get(path) != state
+            }
+            last_file = self._last_file(changed_files)
+            self._set_download_time(changed_files)
             if self.cancel_event.is_set():
                 self.events.put(("cancelled", None))
             else:
-                self.events.put(("done", None))
+                self.events.put(("done", last_file))
         except DownloadCancelled:
             self.events.put(("cancelled", None))
         except Exception as error:
@@ -1914,11 +1972,11 @@ class DownloaderApp:
             "sanitize_paths": True,
         }
         if output_dir is not None:
-            prefix = download_prefix or datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            prefix = download_prefix or datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
             options.update(
                 {
                     "dirname_pattern": str(output_dir),
-                    "filename_pattern": f"{prefix}_{{target}}_{{date_utc}}_UTC",
+                    "filename_pattern": f"{prefix}_{{shortcode}}",
                 }
             )
         return instaloader.Instaloader(**options)
@@ -2101,7 +2159,7 @@ class DownloaderApp:
             raise RuntimeError(self.t("instagram_invalid"))
 
         target = re.sub(r"[^A-Za-z0-9._-]+", "_", identifier).strip("._") or "instagram"
-        download_prefix = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        download_prefix = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
         existing_files = self._instagram_media_files(output_dir)
         loader = self._create_instaloader(output_dir, mode, download_prefix)
         self._load_instagram_session(loader)
@@ -2372,6 +2430,8 @@ class DownloaderApp:
                         self._apply_inspection(payload)
                     self._set_busy(False)
                 elif event == "done":
+                    if payload:
+                        self.last_downloaded_file = Path(payload)
                     if not self.is_closing:
                         self.progress_var.set(100)
                         self.status_var.set(self.t("done"))

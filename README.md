@@ -40,11 +40,13 @@ contents together.
 - Public and account-accessible Instagram photo posts, Reels, carousels, profiles, and stories.
 - Optional Instagram login with local session reuse and 2FA support.
 - Automatic Instagram fallback: `yt-dlp` first, Instaloader second.
-- Instagram fallback media is saved directly to the selected folder with download timestamps.
+- Instagram fallback media is saved directly to the selected folder with
+  `DD-MM-YYYY_HH-MM-SS` download timestamps in the filename.
 - Video mode with available resolutions from 360p up to 4K when provided by the source.
 - Audio mode with quality selection and MP3, M4A, or Opus output.
 - Optional format inspection before downloading.
 - Download progress, speed, ETA, cancellation, and retry handling.
+- **Open folder** opens the destination and selects the most recently downloaded file.
 - Light and dark themes.
 - English and Russian interface; English is the default.
 - Paste by button, `Ctrl+V`, or `Shift+Insert`, including Russian keyboard layouts.
@@ -200,11 +202,13 @@ portable-папки, поэтому пользователю не нужно у�
 - публичные и доступные аккаунту фото-посты, Reels, карусели, stories и профили Instagram;
 - необязательный вход в Instagram с повторным использованием локальной сессии и поддержкой 2FA;
 - автоматический fallback для Instagram: сначала `yt-dlp`, затем Instaloader;
-- медиа Instagram сохраняется прямо в выбранную папку с датой и временем скачивания в имени;
+- медиа Instagram сохраняется прямо в выбранную папку с датой и временем скачивания
+  (`ДД-ММ-ГГГГ_ЧЧ-ММ-СС`) в имени;
 - видео от 360p до 4K, если такое качество доступно у источника;
 - аудио в MP3, M4A или Opus;
 - предварительный просмотр доступных качеств;
 - прогресс, скорость, оставшееся время и отмена загрузки;
+- **Открыть папку** открывает папку назначения и выделяет последний скачанный файл;
 - автоматические повторы при временных сетевых ошибках;
 - SHA-256 контрольные суммы публикуются вместе с каждым релизом;
 - светлая и тёмная тема;
