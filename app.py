@@ -28,8 +28,9 @@ except ImportError:
     instaloader = None
 
 
-APP_VERSION = "1.3.6"
+APP_VERSION = "1.3.7"
 APP_TITLE = "YouTube & Instagram Downloader"
+LEGACY_UPDATER_NAME = "YouTubeDownloaderUpdater.exe"
 GITHUB_RELEASE_API = (
     "https://api.github.com/repos/youngvitaly/yt-downloader/releases/latest"
 )
@@ -328,6 +329,19 @@ def app_directory() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).resolve().parent
     return Path(__file__).resolve().parent
+
+
+def remove_legacy_updater() -> None:
+    if not getattr(sys, "frozen", False):
+        return
+
+    legacy_updater = app_directory() / LEGACY_UPDATER_NAME
+    if not legacy_updater.is_file():
+        return
+    try:
+        legacy_updater.unlink()
+    except OSError:
+        pass
 
 
 def resource_path(filename: str) -> Path:
@@ -2521,6 +2535,7 @@ class DownloaderApp:
 
 
 def main() -> None:
+    remove_legacy_updater()
     root = tk.Tk()
     icon_path = resource_path("icon.ico")
     if icon_path.is_file():
