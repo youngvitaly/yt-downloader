@@ -28,7 +28,7 @@ except ImportError:
     instaloader = None
 
 
-APP_VERSION = "1.3.7"
+APP_VERSION = "1.3.8"
 APP_TITLE = "YouTube & Instagram Downloader"
 LEGACY_UPDATER_NAME = "YouTubeDownloaderUpdater.exe"
 GITHUB_RELEASE_API = (
